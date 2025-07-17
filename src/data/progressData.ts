@@ -21,7 +21,524 @@ const getUserData = async () => {
   await checkandUpdateData();
   return data;
 }
-let data;
+let data = {
+    id: '1',
+    fullName: 'Yashwanth',
+    email: 'yashwanth71208@gmail.com',
+    role: 'student',
+    classes: [ 'Class 6' ],
+    sections: [ 'A' ],
+    password: 'jkl',
+    speakingCompletion: 370,
+    pronunciationCompletion: 958,
+    vocabularyCompletion: 390,
+    grammarCompletion: 380,
+    storyCompletion: 0,
+    reflexCompletion: 0,
+    dailyData: [
+      {
+        date: '2025-07-17',
+        day: 'Thu',
+        fullDate: 'Jul 17',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-16',
+        day: 'Wed',
+        fullDate: 'Jul 16',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 428,
+        pronunciation: 1012,
+        vocabulary: 440,
+        grammar: 423,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-15',
+        day: 'Tue',
+        fullDate: 'Jul 15',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 47,
+        pronunciation: 45,
+        vocabulary: 40,
+        grammar: 37,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-14',
+        day: 'Mon',
+        fullDate: 'Jul 14',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-13',
+        day: 'Sun',
+        fullDate: 'Jul 13',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-12',
+        day: 'Sat',
+        fullDate: 'Jul 12',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-11',
+        day: 'Fri',
+        fullDate: 'Jul 11',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-10',
+        day: 'Thu',
+        fullDate: 'Jul 10',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-09',
+        day: 'Wed',
+        fullDate: 'Jul 09',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-08',
+        day: 'Tue',
+        fullDate: 'Jul 08',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-07',
+        day: 'Mon',
+        fullDate: 'Jul 07',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-06',
+        day: 'Sun',
+        fullDate: 'Jul 06',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-05',
+        day: 'Sat',
+        fullDate: 'Jul 05',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-04',
+        day: 'Fri',
+        fullDate: 'Jul 04',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-03',
+        day: 'Thu',
+        fullDate: 'Jul 03',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-02',
+        day: 'Wed',
+        fullDate: 'Jul 02',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-07-01',
+        day: 'Tue',
+        fullDate: 'Jul 01',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-30',
+        day: 'Mon',
+        fullDate: 'Jun 30',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-29',
+        day: 'Sun',
+        fullDate: 'Jun 29',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-28',
+        day: 'Sat',
+        fullDate: 'Jun 28',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-27',
+        day: 'Fri',
+        fullDate: 'Jun 27',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-26',
+        day: 'Thu',
+        fullDate: 'Jun 26',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-25',
+        day: 'Wed',
+        fullDate: 'Jun 25',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-24',
+        day: 'Tue',
+        fullDate: 'Jun 24',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-23',
+        day: 'Mon',
+        fullDate: 'Jun 23',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-22',
+        day: 'Sun',
+        fullDate: 'Jun 22',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-21',
+        day: 'Sat',
+        fullDate: 'Jun 21',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-20',
+        day: 'Fri',
+        fullDate: 'Jun 20',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-19',
+        day: 'Thu',
+        fullDate: 'Jun 19',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      },
+      {
+        date: '2025-06-18',
+        day: 'Wed',
+        fullDate: 'Jun 18',
+        totalTime: 0,
+        sessionsCompleted: 0,
+        speaking: 0,
+        pronunciation: 0,
+        vocabulary: 0,
+        grammar: 0,
+        story: 0,
+        reflex: 0
+      }
+    ],
+    activityLog: [],
+    wordscramble: {
+      easyscore: { score: 1, isCompleted: false, currWordIndex: 0 },
+      mediumscore: { score: 1, isCompleted: false, currWordIndex: 0 },
+      hardscore: { score: 0, isCompleted: false, currWordIndex: 0 },
+      easy: [ [ 'happy', 0, true ] ],
+      medium: [ [ 'planet', 0, true ] ],
+      hard: [ [ 'information', 0, false ] ]
+    },
+    vocabularyArchade: {
+      intermediate: {
+        wordDetails: [
+          {
+            word: 'reluctant',
+            definition: 'Unwilling and hesitant',
+            incorrectDefinitions: [
+              'Very excited',
+              'Completely certain',
+              'Happily accepting'
+            ],
+            partOfSpeech: 'adjective',
+            example: 'She was reluctant to try the new dish.',
+            hint: 'How you feel before doing something risky',
+            isSolved: false
+          }
+        ],
+        score: 0,
+        badge: '',
+        currentWordIndex: 0
+      },
+      advanced: {
+        score: 0,
+        badge: '',
+        currentWordIndex: 0,
+        wordDetails: [
+          {
+            word: 'ephemeral',
+            definition: 'Lasting for a very short time',
+            incorrectDefinitions: [
+              'Very loud and noisy',
+              'Permanent and unchanging',
+              'Difficult to understand'
+            ],
+            partOfSpeech: 'adjective',
+            example: 'The beauty of a sunset is often ephemeral.',
+            hint: 'Opposite of permanent',
+            isSolved: false
+          }
+        ]
+      },
+      beginner: {
+        score: 0,
+        badge: 'Vocab Master',
+        currentWordIndex: 0,
+        wordDetails: [
+          {
+            word: 'happy',
+            definition: 'Feeling or showing pleasure or contentment',
+            incorrectDefinitions: [
+              'Feeling sad or upset',
+              'Moving very quickly',
+              'Being very loud'
+            ],
+            partOfSpeech: 'adjective',
+            example: 'The children were happy playing in the park.',
+            hint: 'How you feel on your birthday',
+            isSolved: false
+          }
+        ]
+      }
+    },
+    wordsearch: {
+      beginner: {
+        noOfWordsSolved: 0,
+        words: [
+          {
+            word: 'HEART',
+            hint: 'This organ pumps blood through your body',
+            solved: false
+          }
+        ],
+        gridSize: 0,
+        score: 0
+      },
+      intermediate: {
+        noOfWordsSolved: 0,
+        words: [
+          {
+            word: 'PHOTOSYNTHESIS',
+            hint: 'The process by which plants make their food using sunlight',
+            solved: false
+          }
+        ],
+        gridSize: 0,
+        score: 0
+      },
+      advanced: {
+        noOfWordsSolved: 0,
+        words: [
+          {
+            word: 'MITOCHONDRIA',
+            hint: 'The powerhouse of the cell that produces energy',
+            solved: false
+          }
+        ],
+        gridSize: 0,
+        score: 0
+      }
+    },
+    overall: 0,
+    timeSpent: 0
+  };
 export const getData = async () => {
   data = await getUserData();
   console.log(data['wordscramble'])
@@ -53,9 +570,9 @@ export const vocabularyArchadeData = () =>{
 export const wordsearchData = () =>{
   return data['wordsearch']
 }
-(async () => {
-  await generateDailyData();
-})();
+// (async () => {
+//   await generateDailyData();
+// })();
 
 // export const dailyData =await generateDailyData();
 export const loadDailyData = ()=>{

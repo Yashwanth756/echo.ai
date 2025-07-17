@@ -53,7 +53,9 @@ export const vocabularyArchadeData = () =>{
 export const wordsearchData = () =>{
   return data['wordsearch']
 }
-await generateDailyData();
+(async () => {
+  await generateDailyData();
+})();
 
 // export const dailyData =await generateDailyData();
 export const loadDailyData = ()=>{

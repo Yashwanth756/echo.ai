@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // Default and rotating API keys
 const DEFAULT_API_KEY = "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI";
 const API_KEYS = [
+  'AIzaSyCp8okCQjCZ7iCeItLgfeLh5v0a6nIE2Jo',
   'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4',
   "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI",
   'AIzaSyCRk2Yipn_lreY__-KFoCI0Uvi8XAQlVyM'

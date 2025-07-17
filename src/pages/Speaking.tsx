@@ -35,6 +35,7 @@ export default function Speaking() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const apiKeys = [
+    'AIzaSyCp8okCQjCZ7iCeItLgfeLh5v0a6nIE2Jo',
   'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4',
   "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI",
   'AIzaSyCRk2Yipn_lreY__-KFoCI0Uvi8XAQlVyM'

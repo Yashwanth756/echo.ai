@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const DEFAULT_API_KEY = "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI";
 const API_KEYS = [
   'AIzaSyCp8okCQjCZ7iCeItLgfeLh5v0a6nIE2Jo',
+  'AIzaSyAUjUvHX8WrTtfeoLQQks5zxAyXbYkLBww',
   'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4',
   "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI",
   'AIzaSyCRk2Yipn_lreY__-KFoCI0Uvi8XAQlVyM'
@@ -14,7 +15,7 @@ let index = 0;
 
 // Model configuration
 const MODELS = {
-  PRIMARY: "gemini-1.5-flash",
+  PRIMARY: "gemini-2.0-flash",
   FALLBACK: "gemini-pro",
 };
 

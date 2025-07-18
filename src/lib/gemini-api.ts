@@ -38,7 +38,6 @@ const getNextApiKey = (): string => {
 // Create a function to get a fresh instance of the API with the current key
 const getGenAIInstance = (): GoogleGenerativeAI | null => {
   const apiKey = getNextApiKey(); // Always get the next key in the cycle
-  console.log(`[Gemini API] Using API Key: ${apiKey.substring(0, 5)}...`); // Log the key being used (first 5 chars for privacy)
   if (!apiKey) return null;
   return new GoogleGenerativeAI(apiKey);
 };
@@ -64,7 +63,15 @@ export const sendMessageToGemini = async (userMessage: string, topic: string): P
       }
 
       let currentModel = MODELS.PRIMARY;
-      let model = genAI.getGenerativeModel({ model: currentModel });
+      let model = genAI.getGenerativeModel({
+        model: currentModel,
+        // *** ADDED generationConfig HERE ***
+        generationConfig: {
+          temperature: 0.7, // Adjust this value (0.0 to 1.0) for desired randomness
+          topK: 40,
+          topP: 0.95,
+        },
+      });
 
       if (topic !== currentTopic) {
         resetChatHistory(topic);
@@ -99,7 +106,15 @@ export const sendMessageToGemini = async (userMessage: string, topic: string): P
           if (currentModel === MODELS.PRIMARY && MODELS.FALLBACK) {
             console.log("Trying fallback model for chat initialization...");
             currentModel = MODELS.FALLBACK;
-            model = genAI.getGenerativeModel({ model: currentModel });
+            model = genAI.getGenerativeModel({
+              model: currentModel,
+              // *** ADDED generationConfig HERE for FALLBACK also ***
+              generationConfig: {
+                temperature: 0.7, // Keep consistent or adjust differently for fallback
+                topK: 40,
+                topP: 0.95,
+              },
+            });
             chatInstance = model.startChat({ history: [] });
             const systemResult = await chatInstance.sendMessage(
               `System instruction (please follow these guidelines): ${systemPrompt}`
@@ -182,7 +197,7 @@ export const getLanguageFeedback = async (userMessage: string): Promise<{
 
         const feedbackChat = model.startChat({
           generationConfig: {
-            temperature: 0.2,
+            temperature: 0.2, // Keep this low for consistent feedback
             topK: 40,
             topP: 0.95,
             maxOutputTokens: 1000,
@@ -326,4 +341,110 @@ export const getLanguageFeedback = async (userMessage: string): Promise<{
     vocabularyScore: 50,
     grammarScore: 50
   };
+};
+
+
+// NEW FUNCTION TO GENERATE VOCABULARY WORDS
+export const generateVocabularyWords = async (level: 'beginner' | 'intermediate' | 'advanced'): Promise<any[]> => {
+  let attempts = 0;
+  const maxAttempts = API_KEYS.length + 1;
+
+  while (attempts < maxAttempts) {
+    try {
+      console.log(`[Gemini API] Vocabulary Generation Attempt ${attempts + 1} with API Key Rotation`);
+      const genAI = getGenAIInstance();
+      if (!genAI) {
+        throw new Error("Please add your Gemini API key in the Settings page to use this feature.");
+      }
+
+      let currentModel = MODELS.PRIMARY;
+      let model = genAI.getGenerativeModel({
+        model: currentModel,
+        generationConfig: {
+          temperature: 0.8, // Increased temperature for more diversity
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1000,
+        },
+      });
+
+      // Introduce a random seed to the prompt to ensure different words each time
+      const uniqueifier = Math.random().toString(36).substring(2, 9); // Shorter, unique string
+
+      const prompt = `Generate 5 vocabulary words for ${level} level English learners. Provide the response as a JSON array with this exact structure:
+
+[
+  {
+    "word": "example",
+    "meaning": "a thing characteristic of its kind or illustrating a general rule",
+    "partOfSpeech": "noun",
+    "phonetic": "/ɪɡˈzɑːmpl/",
+    "example": "This painting is a perfect example of the artist's later work.",
+    "synonyms": ["instance", "case", "illustration", "sample"],
+    "antonyms": ["exception", "anomaly"],
+    "memoryTip": "Think of 'exam' + 'ple' - something you examine as a sample"
+  }
+]
+
+Requirements:
+- ${level === 'beginner' ? 'Simple, common words (3-8 letters)' :
+        level === 'intermediate' ? 'Moderately challenging words (5-12 letters)' :
+        'Advanced vocabulary, academic or professional words (6-15 letters)'}
+- Provide accurate phonetic pronunciation
+- Include 2-4 synonyms and 1-3 antonyms
+- Create memorable tips for each word
+- Ensure proper grammar and accurate definitions
+
+Return only the JSON array, no additional text.
+Random seed: ${uniqueifier}`; // <-- IMPORTANT: Added random seed here
+
+      console.log(`[Gemini API] Sending vocabulary prompt to ${currentModel} (first 100 chars): "${prompt.substring(0, 100)}..."`);
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+      console.log(`[Gemini API] Got vocabulary response (first 50 chars): "${text.substring(0, 50)}..."`);
+
+      try {
+        const parsedJson = JSON.parse(text);
+        // Basic validation to ensure it's an array and contains objects
+        if (Array.isArray(parsedJson) && parsedJson.every(item => typeof item === 'object' && item !== null)) {
+            return parsedJson;
+        } else {
+            console.error("[Gemini API] Parsed JSON is not an array of objects:", parsedJson);
+            throw new Error("Invalid JSON format received for vocabulary words.");
+        }
+      } catch (e) {
+        console.error("[Gemini API] Error parsing JSON for vocabulary words:", e);
+        // Attempt to extract JSON if it's wrapped in other text
+        const jsonMatch = text.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+            try {
+                const extractedJson = JSON.parse(jsonMatch[0]);
+                if (Array.isArray(extractedJson) && extractedJson.every(item => typeof item === 'object' && item !== null)) {
+                    return extractedJson;
+                }
+            } catch (innerError) {
+                console.error("[Gemini API] Failed to parse extracted JSON:", innerError);
+            }
+        }
+        throw new Error("Could not parse vocabulary response as JSON after attempts.");
+      }
+
+    } catch (error: any) {
+      console.error(`Error generating vocabulary (attempt ${attempts + 1}):`, error);
+
+      if (error.message && (error.message.includes("429") || error.message.includes("API key") || error.message.includes("400"))) {
+        console.warn("API key likely rate-limited or invalid for vocabulary generation. Rotating to next key.");
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.error("All available API keys have been tried for vocabulary generation and failed.");
+          throw new Error("Failed to generate vocabulary words: All API keys exhausted or invalid.");
+        }
+        // Continue to the next iteration to try the next key
+      } else {
+        throw error; // Re-throw other types of errors immediately
+      }
+    }
+  }
+  throw new Error("An unexpected error occurred and all attempts to generate vocabulary failed.");
 };

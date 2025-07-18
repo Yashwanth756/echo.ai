@@ -15,7 +15,7 @@ let index = 0;
 
 // Model configuration
 const MODELS = {
-  PRIMARY: "gemini-2.0-flash",
+  PRIMARY: "gemini-1.5-flash",
   FALLBACK: "gemini-pro",
 };
 

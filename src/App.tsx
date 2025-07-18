@@ -1,3 +1,4 @@
+// App.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -26,22 +27,38 @@ import TeacherRegister from "./pages/TeacherRegister";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import QuickQuiz from "./pages/QuickQuiz";
+import { getData } from "./data/progressData";
 
 const queryClient = new QueryClient();
 
 // Protected Route component
-const ProtectedRoute =  ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [dataFetched, setDataFetched] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if user is authenticated (localStorage check)
-    const authToken = localStorage.getItem('authToken');
-    const userSession = localStorage.getItem('userSession');
-    setIsAuthenticated(!!(authToken || userSession));
+    const checkAuthAndFetch = async () => {
+      const authToken = localStorage.getItem("authToken");
+      const userSession = localStorage.getItem("userSession");
+
+      const isLoggedIn = !!(authToken || userSession);
+      setIsAuthenticated(isLoggedIn);
+
+      if (isLoggedIn) {
+        try {
+          await getData();
+        } catch (error) {
+          console.error("Error fetching progress data", error);
+        }
+      }
+
+      setDataFetched(true);
+    };
+
+    checkAuthAndFetch();
   }, []);
 
-  if (isAuthenticated === null) {
-    // Loading state
+  if (isAuthenticated === null || !dataFetched) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/5">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -52,8 +69,7 @@ const ProtectedRoute =  ({ children }: { children: React.ReactNode }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-// await checkandUpdateData()
-  // checkandUpdateData()
+
   return <>{children}</>;
 };
 

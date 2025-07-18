@@ -1,15 +1,13 @@
 
-// Enhanced progress data with daily tracking and analytics
-// In a real app, this would come from a database
+
 import {getWeeklyData, getRadarData, updateDailyData} from "./utils";
+
+let data;
 const backend_url = import.meta.env.VITE_backend_url
-// console.log("API URL:", backend_url);
 const getUserData = async () => {
   const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   let email;
-  // if (userSession.role == 'student')
   email = userSession.email || "student1@gmail.com";
-  // else email = userSession.email || "teacher@echo.ai"
   const response = await fetch(backend_url + "getUserData", {
         method: "POST",
         headers: {
@@ -21,7 +19,7 @@ const getUserData = async () => {
   await checkandUpdateData();
   return data;
 }
-let data = {
+data = {
     id: '1',
     fullName: 'Yashwanth',
     email: 'yashwanth71208@gmail.com',
@@ -541,16 +539,16 @@ let data = {
   };
 export const getData = async () => {
   data = await getUserData();
-  console.log(data['wordscramble'])
+  return data
 }
 
 export const overallProgress = {
-  speaking: 65,
-  pronunciation: 78,
-  vocabulary: 62,
-  grammar: 70,
-  story: 55,
-  reflex: 40,
+  speaking: data['speakingCompletion'],
+  pronunciation: ['pronunciationCompletion'],
+  vocabulary: ['vocabularyCompletion'],
+  grammar: ['grammarCompletion'],
+  story: ['storyCompletion'],
+  reflex: ['reflexCompletion'],
 };
 
 export const generateDailyData = async() => {

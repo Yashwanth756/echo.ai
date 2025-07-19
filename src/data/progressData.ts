@@ -596,9 +596,8 @@ export let activityLog =()=> (data['activityLog'])
 
 // Performance analytics
 export const getPerformanceAnalytics = () => {
-  const recent7Days = data['dailyData'].slice(-7);
-  const previous7Days = data['dailyData'].slice(-14, -7);
-  
+  const recent7Days = data['dailyData'].slice(0,7);
+  const previous7Days = data['dailyData'].slice(7, 14);  
   const modules = ['speaking', 'pronunciation', 'vocabulary', 'grammar', 'story', 'reflex'];
   
   const analytics = modules.map(module => {
@@ -606,7 +605,6 @@ export const getPerformanceAnalytics = () => {
     const previousAvg = previous7Days.reduce((sum, day) => sum + day[module], 0) / 7;
     const improvement = recentAvg - previousAvg;
     const trend = improvement > 2 ? 'improving' : improvement < -2 ? 'declining' : 'stable';
-    
     return {
       module: module.charAt(0).toUpperCase() + module.slice(1),
       current: Math.round(recentAvg),
@@ -787,7 +785,7 @@ export async function handleDailyData( currDayObj) {
 
     const averagedDay = { ...existing };
     fields.forEach(field => {
-      averagedDay[field] = Math.floor((existing[field] + currDayObj[field]));
+      averagedDay[field] = Math.floor((existing[field] + currDayObj[field])/2);
     });
     averagedDay.totalTime = existing.totalTime + currDayObj.totalTime;
     averagedDay.sessionsCompleted = existing.sessionsCompleted + currDayObj.sessionsCompleted;
@@ -796,8 +794,8 @@ export async function handleDailyData( currDayObj) {
     data['dailyData'] = data['dailyData'].slice(0, 30);
     console.log(currDayObj, averagedDay)
 
-    console.log(currDayObj, data['dailyData'][0]);
-    let response = await updateDailyData(data['dailyData'], currDayObj);
+    // console.log(currDayObj, data['dailyData'][0]);
+    let response = await updateDailyData(data, currDayObj);
     console.log("Updated daily data:", response);
     return;
   }
@@ -829,8 +827,8 @@ export async function handleDailyData( currDayObj) {
   data['dailyData'].unshift(currDayObj);
   data['dailyData'] = data['dailyData'].slice(0, 30);
 
-
-  let response = await updateDailyData(data['dailyData'], currDayObj);
-  console.log("Updated daily data:", response);
+  // console.log(data)
+  let response = await updateDailyData(data, currDayObj);
+  // console.log("Updated daily data:", response);
 }
 

@@ -23,19 +23,19 @@ export function getRadarData(dailyData) {
   return radarData;
 }
 
-export const updateDailyData = async(dailyData, currDayObj) => {
-  // console.log("Updating daily data:", dailyData);
+export const updateDailyData = async(data, currDayObj) => {
+  console.log("Updating daily data:", data);
   const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   const username = userSession.email || "Guest";
-  console.log(username)
+  // console.log(username)
   const response = await fetch(backend_url + "updateDailyData", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, dailyData, currDayObj })
+        body: JSON.stringify({ username, data, currDayObj })
       });
  
-  const data = await response.json();
-  return data;
+  const output = await response.json();
+  return output;
 }

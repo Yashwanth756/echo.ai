@@ -7,6 +7,7 @@ import { generateIntelligentFeedback } from "@/data/progressData";
 
 export const IntelligentFeedback = () => {
   const feedback = generateIntelligentFeedback();
+  // console.log("Generated Feedback:", feedback);
 
   const getGradeColor = (grade: string) => {
     switch (grade) {

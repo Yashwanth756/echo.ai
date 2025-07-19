@@ -11,6 +11,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { AlertCircle } from "lucide-react";
 import { handleDailyData } from "@/data/progressData";
+const backend_url = import.meta.env.VITE_backend_url
+
 // Sample topics for the speaking practice select dropdown
 const sampleTopics = [
   "Daily Life",
@@ -34,16 +36,6 @@ export default function Speaking() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const apiKeys = [
-    'AIzaSyCp8okCQjCZ7iCeItLgfeLh5v0a6nIE2Jo',
-    'AIzaSyAUjUvHX8WrTtfeoLQQks5zxAyXbYkLBww',
-  'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4',
-  "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI",
-  'AIzaSyCRk2Yipn_lreY__-KFoCI0Uvi8XAQlVyM'
-];
-
-const [apiKeyIndex, setApiKeyIndex] = useState(0);
-
   
   // Use the enhanced speech recognition hook
   const {
@@ -151,37 +143,33 @@ const [apiKeyIndex, setApiKeyIndex] = useState(0);
     setTranscript("");
   };
 
- const handleAnalyze = async () => {
-  if (!transcript.trim()) {
-    toast.error("No transcript available. Please record some speech first.");
-    return;
-  }
-
-  if (!apiKeys.length) {
-    toast.error("No Gemini API keys provided. Please add them in settings.", {
-      action: {
-        label: "Settings",
-        onClick: () => navigate('/settings')
-      }
-    });
-    return;
-  }
-
-  setLoading(true);
-
-  let attempts = 0;
-  let success = false;
-  let lastErrorMessage = '';
-
-  while (attempts < apiKeys.length && !success) {
-    const currentKey = apiKeys[(apiKeyIndex + attempts) % apiKeys.length];
-
+  // Enhanced analyze function with better error handling and API communication
+  const handleAnalyze = async () => {
+    if (!transcript.trim()) {
+      toast.error("No transcript available. Please record some speech first.");
+      return;
+    }
+    
+    // Check if we have an API key
+    if (!apiKey) {
+      toast.error("No Gemini API key found. Please add one in settings.", {
+        action: {
+          label: "Settings",
+          onClick: () => navigate('/settings')
+        }
+      });
+      return;
+    }
+    
+    setLoading(true);
     try {
       const speechText = transcript;
+      
+      // Enhanced Gemini Prompt with clearer instructions:
       const prompt = [
-  {
-    parts: [{
-      text: `
+        {
+          parts: [{
+            text: `
 You are an expert English language coach with years of experience in teaching and providing detailed feedback. I am building a website to help users improve their English speaking skills using AI.
 
 I will provide you with a transcript of what the user has spoken. Based on that transcript, give a detailed, structured, and VERY ACCURATE feedback report with these sections:
@@ -238,64 +226,100 @@ Respond as clean JSON ONLY, using keys:
   "communication_tips": ["string"],
   "overall_summary": { "score": number, "level": "string", "recommendation": "string" }
 }
-      `
-    }]
-  }
-];
+`
+          }]
+        }
+      ];
+      let apikey, geminiModel;
+      try {
+      const response = await fetch(backend_url + "get-api-key");
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
 
-
+      const data = await response.json();
+      apikey = data.key;
+      geminiModel = data.model;
+      console.log("API key data:", data);
+      // setApiKey(data.apiKey);
+    } catch (err: any) {
+      console.error(err.message || "Unknown error occurred");
+    }
+    if (apikey.length === 0){
+      const savedApiKey = localStorage.getItem('gemini-api-key');
+      apikey = savedApiKey;
+      geminiModel ='gemini-2.0-flash'
+    }
+      // Updated API endpoint to use the most suitable model
       const apiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${currentKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/`+geminiModel+`:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: prompt }),
         }
       );
-
-      if (apiRes.status === 429) {
-        // Rate limit -> rotate to next key
-        toast.warning(`API key ${attempts + 1} is rate-limited. Rotating...`);
-        attempts++;
-        continue;
-      }
-
+      
+      // Log the API call for debugging
+      // console.log("API response status:", apiRes.status);
+      
       if (!apiRes.ok) {
         const errorText = await apiRes.text();
-        throw new Error(`API error (${apiRes.status}): ${errorText}`);
+        console.error("API error:", errorText);
+        
+        // More specific error handling based on status codes
+        if (apiRes.status === 400 && errorText.includes("API key not valid")) {
+          toast.error("Your API key is invalid. Please check your API key in Settings.", {
+            action: {
+              label: "Settings",
+              onClick: () => navigate('/settings')
+            }
+          });
+        } else if (apiRes.status === 429) {
+          toast.error("API rate limit exceeded. Please try again later or use a different API key.");
+        } else {
+          throw new Error(`API error (${apiRes.status}): ${errorText || "Unknown error"}`);
+        }
+        
+        setLoading(false);
+        return;
       }
-
-      // Success
+      
       const json = await apiRes.json();
-      const text = (json?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+      console.log("API response:", json);
 
+      // More robust JSON extraction logic
+      const text = (json?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
       let feedbackObj = null;
       try {
+        // Remove markdown code fences if present
         let cleanText = text;
         if (cleanText.startsWith("```json")) {
           cleanText = cleanText.replace(/^```json/, "").replace(/```$/, "").trim();
         } else if (cleanText.startsWith("```")) {
           cleanText = cleanText.replace(/^```/, "").replace(/```$/, "").trim();
         }
-
+        
+        // Try to find valid JSON in the response
         const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           feedbackObj = JSON.parse(jsonMatch[0]);
         } else {
           feedbackObj = JSON.parse(cleanText);
         }
-
+        
+        // Validate the parsed JSON has the expected structure
         if (!feedbackObj.corrected_version || !feedbackObj.scores) {
           throw new Error("Invalid response format");
         }
-
+        
       } catch (e) {
+        console.error("Error parsing JSON:", e);
         toast.error("Could not parse the AI response. Please try again.");
         feedbackObj = { raw: text, parsing_error: true };
       }
-
-      const currDay = {
-        date: new Date().toISOString().split('T')[0],
+       const currDay = {
+        date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
         day: new Date().toLocaleDateString("en-US", { weekday: "short" }),
         fullDate: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit" }),
         speaking: feedbackObj.scores?.fluency?.score || 0,
@@ -307,28 +331,18 @@ Respond as clean JSON ONLY, using keys:
         totalTime: 0,
         sessionsCompleted: 0
       };
-
+      // console.log('starting update', dailyData())
       await handleDailyData(currDay);
-
+      // console.log("Updated daily data:", dailyData())
+      
+      
       setFeedback(feedbackObj);
-
-      // Update index so we use this key next time
-      setApiKeyIndex((apiKeyIndex + attempts) % apiKeys.length);
-      success = true;
-
-    } catch (err: any) {
-      lastErrorMessage = err.message;
-      console.error("Error:", err);
-      attempts++;
+    } catch (e: any) {
+      console.error("Analysis error:", e);
+      toast.error("Analysis failed: " + (e.message || "Could not reach Gemini API. Please check your connection."));
     }
-  }
-
-  if (!success) {
-    toast.error(`All API keys failed. Last error: ${lastErrorMessage}`);
-  }
-
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   // Highlight errors in transcript: error words displayed with a tooltip
   function highlightErrors(original: string, highlighted_errors?: any[]) {

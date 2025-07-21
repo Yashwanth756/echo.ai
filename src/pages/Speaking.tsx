@@ -240,7 +240,7 @@ Respond as clean JSON ONLY, using keys:
       const data = await response.json();
       apikey = data.key;
       geminiModel = data.model;
-      console.log("API key data:", data);
+      // console.log("API key data:", data);
       // setApiKey(data.apiKey);
     } catch (err: any) {
       console.error(err.message || "Unknown error occurred");

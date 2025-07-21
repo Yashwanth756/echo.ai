@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Award } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudentProgress } from "@/data/hooks/useStudentProgress";
-
+import { loadDailyData } from '@/data/progressData';
 export interface Goal {
   id: string;
   name: string;
@@ -42,32 +42,96 @@ const demoGoals: Goal[] = [
 export const DailyGoals: React.FC = () => {
   const { user } = useAuth();
   const studentId = user?.email || user?.id; // using email/id as unique key
+  const generateGoalsFromDailyData = (dailyData) => {
+  const goals = [];
+  const today = dailyData[0]; // first index is the latest day
 
-  const { data, isLoading } = useStudentProgress(studentId);
+  let idCounter = 1;
 
-  // Derive goals: each assignment becomes a goal for demo purposes.
-  const goals: Goal[] = useMemo(() => {
-    if (isLoading) return [];
-    if (data && Array.isArray(data.assignments) && data.assignments.length > 0) {
-      return data.assignments.map((a: any) => {
-        const prog = data.progress.find((p: any) => p.assignmentId === a.id);
-        return {
-          id: a.id,
-          name: a.title,
-          completed: prog?.status === "completed",
-          target: 1,
-          current: prog?.status === "completed" ? 1 : 0
-        };
+  const activityTargets = {
+    speaking: {
+      name: "Complete a speaking task and score above 70",
+      target: 70,
+    },
+    vocabulary: {
+      name: "Score above 70 in vocabulary practice",
+      target: 70,
+    },
+    grammar: {
+      name: "Improve grammar to at least 70",
+      target: 70,
+    },
+    pronunciation: {
+      name: "Practice pronunciation and reach 70 score",
+      target: 70,
+    },
+    story: {
+      name: "Finish a story reading task with score above 70",
+      target: 70,
+    },
+    reflex: {
+      name: "Work on reflex task and hit at least 70",
+      target: 70,
+    },
+  };
+
+  Object.keys(activityTargets).forEach((key) => {
+    const currentScore = today[key] ?? 0;
+    const targetScore = activityTargets[key].target;
+
+    if (currentScore < targetScore) {
+      goals.push({
+        id: idCounter.toString(),
+        name: activityTargets[key].name,
+        completed: currentScore >= targetScore,
+        target: targetScore,
+        current: currentScore,
       });
+      idCounter++;
     }
-    // Fallback to demo goals if there's no user data
-    return demoGoals;
-  }, [data, isLoading]);
+  });
 
-  const overallProgress = useMemo(() => {
-    if (!goals.length) return 0;
-    return Math.round((goals.reduce((acc, g) => acc + g.current, 0) / goals.reduce((acc, g) => acc + g.target, 0)) * 100);
-  }, [goals]);
+  return goals;
+};
+
+// Example usage:
+  const goals = generateGoalsFromDailyData(loadDailyData());
+  const isLoading = false; 
+
+  // const { data, isLoading } = useStudentProgress(studentId);
+
+  // // Derive goals: each assignment becomes a goal for demo purposes.
+  // const goals: Goal[] = useMemo(() => {
+  //   if (isLoading) return [];
+  //   if (data && Array.isArray(data.assignments) && data.assignments.length > 0) {
+  //     return data.assignments.map((a: any) => {
+  //       const prog = data.progress.find((p: any) => p.assignmentId === a.id);
+  //       return {
+  //         id: a.id,
+  //         name: a.title,
+  //         completed: prog?.status === "completed",
+  //         target: 1,
+  //         current: prog?.status === "completed" ? 1 : 0
+  //       };
+  //     });
+  //   }
+  //   // Fallback to demo goals if there's no user data
+  //   return demoGoals;
+  // }, [data, isLoading]);
+  console.log('Goals:', goals);
+
+  const overallProgress = () => {
+  if (!goals.length) return 0;
+
+  const totalCurrent = goals.reduce((sum, goal) => sum + goal.current, 0);
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.target, 0);
+
+  const progress = (totalCurrent / totalTarget) * 100;
+
+  return Math.min(100, Math.round(progress)); // Ensure max is 100
+};
+const progress = overallProgress();
+console.log('Overall Progress:', progress);
 
   return (
     <Card>
@@ -79,11 +143,11 @@ export const DailyGoals: React.FC = () => {
           </div>
         </CardTitle>
         <div className="text-sm font-medium text-primary">
-          {isLoading ? '--' : `${overallProgress}% completed`}
+          {isLoading ? '--' : `${overallProgress()}% completed`}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Progress value={overallProgress} />
+        <Progress value={progress} />
         <div className="space-y-3">
           {(isLoading ? Array(3).fill(undefined) : goals).map((goal, i) =>
             goal ? (

@@ -66,21 +66,21 @@ export default function Speaking() {
 
   // Load the API key from localStorage on component mount
   useEffect(() => {
-    const savedApiKey = localStorage.getItem('gemini-api-key');
-    if (!savedApiKey || savedApiKey.trim() === '') {
-      toast.warning(
-        "No API key found. Please set your Gemini API key in Settings",
-        {
-          action: {
-            label: "Go to Settings",
-            onClick: () => navigate('/settings')
-          },
-          duration: 10000,
-        }
-      );
-    } else {
-      setApiKey(savedApiKey);
-    }
+    // const savedApiKey = localStorage.getItem('gemini-api-key');
+    // if (!savedApiKey || savedApiKey.trim() === '') {
+    //   toast.warning(
+    //     "No API key found. Please set your Gemini API key in Settings",
+    //     {
+    //       action: {
+    //         label: "Go to Settings",
+    //         onClick: () => navigate('/settings')
+    //       },
+    //       duration: 10000,
+    //     }
+    //   );
+    // } else {
+      setApiKey('AIzaSyB8wVsyeitIHz5lPt2D7-kY1VuN9uiLXDs');
+    // }
   }, [navigate]);
 
   // Start recording (audio + live transcript)

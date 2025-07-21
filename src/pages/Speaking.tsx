@@ -722,7 +722,7 @@ Respond as clean JSON ONLY, using keys:
 
             {/* 7. Communication Tips */}
             {feedback.communication_tips && (
-              <Card className="rounded-xl bg-primary/10 border-0">
+              <Card className="rounded-xl border-0 bg-blue-50">
                 <CardHeader>
                   <span className="font-semibold text-primary">Communication Tips</span>
                 </CardHeader>

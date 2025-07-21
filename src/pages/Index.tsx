@@ -13,7 +13,7 @@ import confetti from 'canvas-confetti';
 import { useNavigate } from "react-router-dom";
 import { Trophy } from "lucide-react"; // Import Trophy icon for the button
 import { Button } from "@/components/ui/button"; // Import Button
-
+import { loadDailyData } from "@/data/progressData";
 // Quick start actions
 const quickStarts = [
   {
@@ -104,25 +104,49 @@ function QuickStartPanel() {
   );
 }
 
-// Mock streak data for demonstration
-const mockStreakData = Object.fromEntries(
-  Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-    return [
-      dateStr,
-      {
-        completed: i < 7 || Math.random() > 0.2,
-        score: Math.floor(Math.random() * 30) + 70
-      }
-    ];
-  })
-);
+
+const CreateStreakData = (dailyData) => {
+  const result = {};
+  let completedDays = 0;
+
+  dailyData.forEach((entry) => {
+    const {
+      date,
+      grammar = 0,
+      pronunciation = 0,
+      reflex = 0,
+      speaking = 0,
+      story = 0,
+      vocabulary = 0,
+    } = entry;
+
+    const scores = [grammar, pronunciation, reflex, speaking, story, vocabulary];
+    const activeScores = scores.filter(score => score > 0);
+    const completed = activeScores.length > 0;
+    const score =
+      activeScores.length > 0
+        ? Math.round(activeScores.reduce((sum, s) => sum + s, 0) / activeScores.length)
+        : 0;
+
+    result[date] = {
+      completed,
+      score,
+    };
+
+    if (completed) completedDays += 1;
+  });
+
+  return {
+    mockStreakData: result,
+    completedDays,
+  };
+};
+
 
 const Index = () => {
   const [showAnimation, setShowAnimation] = useState(false);
   const navigate = useNavigate();
+  let { mockStreakData, completedDays } = CreateStreakData(loadDailyData());
 
   useEffect(() => {
     setShowAnimation(true);
@@ -153,7 +177,7 @@ const Index = () => {
               <DailyGoals />
             </div>
             <div className="transform hover:scale-[1.02] transition-all duration-300 border-2 border-border/30 hover:border-border/50 rounded-xl overflow-hidden">
-              <StreakTracker streakData={mockStreakData} currentStreak={5} />
+              <StreakTracker streakData={mockStreakData} currentStreak={completedDays} />
             </div>
           </div>
 

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StoryDisplay } from "@/components/story/StoryDisplay";
+import { EnhancedStoryDisplay } from "@/components/story/EnhancedStoryDisplay";
 import { useStory } from "@/hooks/use-story";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { RefreshCcw, BookOpen, Sparkles } from "lucide-react";
@@ -173,7 +172,7 @@ const Story = () => {
                     </Button>
                   </div>
                 ) : (
-                  <StoryDisplay 
+                  <EnhancedStoryDisplay 
                     story={story} 
                     onProgressUpdate={setProgress} 
                   />

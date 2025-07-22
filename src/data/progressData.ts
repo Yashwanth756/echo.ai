@@ -621,7 +621,7 @@ export const getPerformanceAnalytics = () => {
 // Intelligent feedback system
 export const generateIntelligentFeedback = () => {
   const analytics = getPerformanceAnalytics();
-  const recentData = data['dailyData'].slice(-7);
+  const recentData = data['dailyData'].slice(0, 7);
   const totalStudyTime = recentData.reduce((sum, day) => sum + day.totalTime, 0);
   const avgDailyTime = totalStudyTime / 7;
   
@@ -635,7 +635,7 @@ export const generateIntelligentFeedback = () => {
   
   const improvingModules = analytics.filter(m => m.trend === 'improving');
   const decliningModules = analytics.filter(m => m.trend === 'declining');
-  
+  console.log('recent data', recentData);
   const feedback = {
     overall: {
       grade: calculateOverallGrade(analytics),

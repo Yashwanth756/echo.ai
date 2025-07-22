@@ -41,8 +41,9 @@ export const resetChatHistory = (topic: string): void => {
 
 // Send message to Gemini and get response
 export const sendMessageToGemini = async (userMessage: string, topic: string): Promise<string> => {
+  let apikey, geminiModel, genAI = getGenAIInstance(), currentModel = MODELS.PRIMARY;
   try {
-    let apikey, geminiModel, genAI=getGenAIInstance(), currentModel = MODELS.PRIMARY;
+    
     try {
       const response = await fetch(backend_url + "get-api-key");
       if (!response.ok) {
@@ -50,7 +51,8 @@ export const sendMessageToGemini = async (userMessage: string, topic: string): P
       }
 
       const data = await response.json();
-      apikey = data.key;
+      console.log("API key data received:", data);
+      apikey = data.apiKey;
       geminiModel = data.model;
       // console.log("API key data:", data);
       // setApiKey(data.apiKey);
@@ -186,20 +188,28 @@ export const getLanguageFeedback = async (userMessage: string): Promise<{
 }> => {
   try {
     // Get fresh instance with current API key
-    const genAI = getGenAIInstance();
+      let apikey, geminiModel, genAI = getGenAIInstance(), currentModel = MODELS.PRIMARY;
+   
+    // Try with primary model first
+      const response = await fetch(backend_url + "get-api-key");
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("API key data received:", data);
+      apikey = data.apiKey;
+      geminiModel = data.model;
+    
+    // Get fresh instance with current API key
+    if(apikey.length != 0)  genAI = new GoogleGenerativeAI(apikey);
     if (!genAI) {
-      return {
-        feedback: "Please add your Gemini API key in the Settings page to use this feature.",
-        fluencyScore: 0,
-        vocabularyScore: 0,
-        grammarScore: 0
-      };
+       console.error("No valid API key found. Please set your Gemini API key in Settings.");
     }
     
     // Try with primary model first
-    let currentModel = MODELS.PRIMARY;
+    if(apikey.length != 0) currentModel = geminiModel;
     let model = genAI.getGenerativeModel({ model: currentModel });
-    
     try {
       console.log(`Getting language feedback using model: ${currentModel}`);
       

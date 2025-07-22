@@ -82,7 +82,7 @@ export const analyzeGrammar = async (text: string): Promise<GrammarAnalysisResul
       }
 
       const data = await apidata.json();
-      apikey = data.key;
+      apikey = data.apikey;
       geminiModel = data.model;
       if(apikey.length != 0)  genAI = new GoogleGenerativeAI(apikey);
       if (!genAI) {

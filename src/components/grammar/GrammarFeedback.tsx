@@ -16,9 +16,10 @@ interface GrammarFeedbackProps {
   score: number;
   errors: GrammarError[];
   suggestion: string;
+  correctedText?: string;
 }
 
-const GrammarFeedback = ({ text, score, errors, suggestion }: GrammarFeedbackProps) => {
+const GrammarFeedback = ({ text, score, errors, suggestion, correctedText }: GrammarFeedbackProps) => {
   return (
     <Card className="mb-8 border-t-4 border-primary">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -40,9 +41,13 @@ const GrammarFeedback = ({ text, score, errors, suggestion }: GrammarFeedbackPro
         </div>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2">Corrected Text:</h3>
-          <div className="bg-green-50 p-4 rounded-md border border-green-200 text-green-800 relative">
-            {text}
+          <h3 className="font-medium mb-2">{errors.length > 0 ? "Corrected Text:" : "Your Text:"}</h3>
+          <div className={`p-4 rounded-md border relative ${
+            errors.length > 0 
+              ? "bg-green-50 border-green-200 text-green-800" 
+              : "bg-blue-50 border-blue-200 text-blue-800"
+          }`}>
+            {correctedText || text}
             {score === 100 && (
               <Badge variant="success" className="absolute -top-2 -right-2">
                 Perfect!

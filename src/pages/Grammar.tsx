@@ -38,7 +38,7 @@ const Grammar = () => {
     setText(e.target.value);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!text.trim()) {
       toast({
         title: "Empty input",
@@ -50,17 +50,24 @@ const Grammar = () => {
 
     setIsAnalyzing(true);
     
-    // Simulating API call delay
-    setTimeout(() => {
-      const result = analyzeGrammar(text);
+    try {
+      const result = await analyzeGrammar(text);
       setAnalysis(result);
-      setIsAnalyzing(false);
 
       toast({
         title: "Analysis complete",
         description: `Your grammar score: ${result.score}/100`,
       });
-    }, 1500);
+    } catch (error) {
+      console.error("Error analyzing grammar:", error);
+      toast({
+        title: "Analysis failed",
+        description: "There was an error analyzing your text. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleMicClick = () => {
@@ -161,7 +168,8 @@ const Grammar = () => {
                   text={text} 
                   score={analysis.score} 
                   errors={analysis.errors} 
-                  suggestion={analysis.suggestion} 
+                  suggestion={analysis.suggestion}
+                  correctedText={analysis.correctedText}
                 />
                 
                 <PartsOfSpeechAnalysis 

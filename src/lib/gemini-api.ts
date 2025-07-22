@@ -4,7 +4,7 @@ const backend_url = import.meta.env.VITE_backend_url
 const DEFAULT_API_KEY = "AIzaSyCc0ZYxEuoocwAZ5jKM8fWQEd0wz6sh4uI";
 
 // Initialize with a function to get the API key (from localStorage if available)
-const getApiKey = (): string => {
+ const getApiKey = (): string => {
   // If user has saved an API key, always use it.
   const userProvidedKey = localStorage.getItem("gemini-api-key");
   if (userProvidedKey !== null) {
@@ -16,7 +16,7 @@ const getApiKey = (): string => {
 };
 
 // Create a function to get a fresh instance of the API with the current key
-const getGenAIInstance = (): GoogleGenerativeAI | null => {
+export const getGenAIInstance = (): GoogleGenerativeAI | null => {
   const apiKey = getApiKey();
   if (!apiKey) return null;
   return new GoogleGenerativeAI(apiKey);
@@ -27,9 +27,9 @@ let chatInstance;
 let currentTopic = ''; // Track topic to force reset if topic changes
 
 // Model configuration with updated models that have better compatibility
-const MODELS = {
-  PRIMARY: "gemini-1.5-flash", // Updated as recommended for better compatibility
-  FALLBACK: "gemini-pro",      // Legacy model as fallback
+export const MODELS = {
+  PRIMARY: "gemini-2.0-flash", // Updated as recommended for better compatibility
+  FALLBACK: "gemini-1.5-flash",      // Legacy model as fallback
 };
 
 // Reset the chat history for a new conversation
@@ -52,7 +52,7 @@ export const sendMessageToGemini = async (userMessage: string, topic: string): P
       const data = await response.json();
       apikey = data.key;
       geminiModel = data.model;
-      console.log("API key data:", data);
+      // console.log("API key data:", data);
       // setApiKey(data.apiKey);
     } catch (err: any) {
       console.error(err.message || "Unknown error occurred");

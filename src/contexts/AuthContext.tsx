@@ -97,6 +97,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
       localStorage.setItem('echo_user', JSON.stringify(foundUser));
       localStorage.setItem('authToken', 'mock-token');
+      localStorage.setItem('gemini-api-key', 'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4');
+
+      // localStorage.setItem('api', 'mock-token');
+
       localStorage.setItem('userSession', JSON.stringify({
         email: data.email,
         name: data.fullName,

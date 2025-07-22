@@ -70,6 +70,8 @@ const Login = () => {
 
   const handleGuestLogin = async() => {
     localStorage.setItem('authToken', 'guest-token');
+    localStorage.setItem('gemini-api-key', 'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4');
+
     localStorage.setItem('userSession', JSON.stringify({
       email: 'guest@echo.ai',
       name: 'Guest User',

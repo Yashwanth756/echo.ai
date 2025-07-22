@@ -66,21 +66,21 @@ export default function Speaking() {
 
   // Load the API key from localStorage on component mount
   useEffect(() => {
-    // const savedApiKey = localStorage.getItem('gemini-api-key');
-    // if (!savedApiKey || savedApiKey.trim() === '') {
-    //   toast.warning(
-    //     "No API key found. Please set your Gemini API key in Settings",
-    //     {
-    //       action: {
-    //         label: "Go to Settings",
-    //         onClick: () => navigate('/settings')
-    //       },
-    //       duration: 10000,
-    //     }
-    //   );
-    // } else {
-      setApiKey('AIzaSyB8wVsyeitIHz5lPt2D7-kY1VuN9uiLXDs');
-    // }
+    const savedApiKey = localStorage.getItem('gemini-api-key');
+    if (!savedApiKey || savedApiKey.trim() === '') {
+      toast.warning(
+        "No API key found. Please set your Gemini API key in Settings",
+        {
+          action: {
+            label: "Go to Settings",
+            onClick: () => navigate('/settings')
+          },
+          duration: 10000,
+        }
+      );
+    } else {
+      setApiKey(savedApiKey);
+    }
   }, [navigate]);
 
   // Start recording (audio + live transcript)
@@ -722,7 +722,7 @@ Respond as clean JSON ONLY, using keys:
 
             {/* 7. Communication Tips */}
             {feedback.communication_tips && (
-              <Card className="rounded-xl border-0 bg-blue-50">
+              <Card className="rounded-xl bg-primary/10 border-0">
                 <CardHeader>
                   <span className="font-semibold text-primary">Communication Tips</span>
                 </CardHeader>

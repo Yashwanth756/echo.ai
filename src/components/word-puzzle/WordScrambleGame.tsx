@@ -9,7 +9,7 @@ import Sortable from 'sortablejs';
 import { LetterPot } from "./LetterPot";
 import { DifficultySelector } from "./DifficultySelector";
 import { GameOverScreen } from "./GameOverScreen";
-
+import { wordscrambleData } from "@/data/progressData";
 // Define difficulty levels
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -20,6 +20,12 @@ const MAX_HINTS = {
 };
 
 const WordScrambleGame = () => {
+  let wordscramble = wordscrambleData() 
+  const easyWords = wordscramble.easy.map(entry => entry[0]);
+  
+  const mediumWords = wordscramble.medium.map(entry => entry[0]);
+  const hardWords = wordscramble.hard.map(entry => entry[0]);
+console.log("wordscramble", wordscramble)
   const { toast } = useToast();
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [originalWord, setOriginalWord] = useState<string>("");
@@ -142,7 +148,7 @@ const WordScrambleGame = () => {
     setIsLoading(true);
     
     // Get a random word based on difficulty
-    const newWord = getRandomWordByDifficulty(difficulty);
+    const newWord = getRandomWordByDifficulty(wordscramble, easyWords, mediumWords, difficulty);
     setOriginalWord(newWord);
     
     // Scramble it and ensure it's different from the original
@@ -154,8 +160,8 @@ const WordScrambleGame = () => {
     setScrambledWord(scrambled);
     setCurrentArrangement(scrambled.split(''));
     setPotArrangement(Array(newWord.length).fill(null));
-    setHintsUsed(getHintsForWord(difficulty, newWord));
-    setPuzzlesSolved(countCompletedWords(difficulty))
+    setHintsUsed(getHintsForWord(wordscramble, difficulty, newWord));
+    setPuzzlesSolved(countCompletedWords(wordscramble, difficulty))
     setHintedIndexes([]);
     setIsCorrect(null);
     setShowInvalidAnimation(false);
@@ -217,7 +223,7 @@ const WordScrambleGame = () => {
       // Update hint tracking
       setHintsUsed(prev => prev + 1);
       updateHints(difficulty, originalWord)
-      updateHintsUsed(difficulty, originalWord)
+      updateHintsUsed(wordscramble, difficulty, originalWord)
       setHintedIndexes(prev => [...prev, hintIndex]);
       
       toast({
@@ -245,7 +251,7 @@ const WordScrambleGame = () => {
       setIsCorrect(true);
       setPuzzlesSolved(prev => prev + 1);
       // markWordAsSolved(difficulty, originalWord)
-      updateScore(difficulty, originalWord)
+      updateScore(wordscramble, difficulty, originalWord)
   
       toast({
         title: "Correct!",

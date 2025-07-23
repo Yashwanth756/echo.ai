@@ -6,13 +6,9 @@ import { wordscrambleData } from '@/data/progressData';
 const backend_url = import.meta.env.VITE_backend_url
 // List of easy words (4-5 letters)
 
-let wordscramble = wordscrambleData() 
-const easyWords = wordscramble.easy.map(entry => entry[0]);
-const mediumWords = wordscramble.medium.map(entry => entry[0]);
-const hardWords = wordscramble.hard.map(entry => entry[0]);
-// console.log(wordscramble)
 
-export const  getHintsForWord=(level, word)=> {
+
+export const  getHintsForWord=(wordscramble, level, word)=> {
   if (!wordscramble[level]) return null;
 
   const entry = wordscramble[level].find(([w]) => w === word);
@@ -34,7 +30,7 @@ export const updateHints = async(difficulty: string, word: string) =>{
   console.log("Update result:", result);
 }
 
-export const updateHintsUsed=(difficulty, word)=> {
+export const updateHintsUsed=(wordscramble, difficulty, word)=> {
   const levelWords = wordscramble[difficulty];
 
   if (!levelWords) {
@@ -51,7 +47,7 @@ export const updateHintsUsed=(difficulty, word)=> {
   }
 }
 
-export const countCompletedWords=(difficulty)=> {
+export const countCompletedWords=(wordscramble, difficulty)=> {
   const levelWords = wordscramble[difficulty];
 
   if (!levelWords) {
@@ -62,7 +58,7 @@ export const countCompletedWords=(difficulty)=> {
   return levelWords.filter(entry => entry[2] === true).length;
 }
 
-export const markWordAsSolved=(difficulty, word)=> {
+export const markWordAsSolved=(wordscramble, difficulty, word)=> {
   const levelWords = wordscramble[difficulty];
 
   if (!levelWords) {
@@ -79,7 +75,7 @@ export const markWordAsSolved=(difficulty, word)=> {
   }
 }
 
-export const updateScore=async(difficulty, word)=>{
+export const updateScore=async(wordscramble, difficulty, word)=>{
   const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   const email = userSession.email || "a@gmail.com";
 
@@ -131,7 +127,7 @@ export const isValidWord = (word: string): boolean => {
 };
 
 // Get a word list based on difficulty
-export const getDifficultyWordList = (difficulty: Difficulty): string[] => {
+export const getDifficultyWordList = (easyWords, mediumWords,difficulty: Difficulty): string[] => {
   switch (difficulty) {
     case 'easy':
       return easyWords;
@@ -145,8 +141,8 @@ export const getDifficultyWordList = (difficulty: Difficulty): string[] => {
 }
 
 // Get a random word based on difficulty level  updating current word index
-export const getRandomWordByDifficulty = (difficulty: Difficulty): string => {
-  const wordList = getDifficultyWordList(difficulty);
+export const getRandomWordByDifficulty = (wordscramble,easyWords, mediumWords,difficulty: Difficulty): string => {
+  const wordList = getDifficultyWordList(easyWords,mediumWords, difficulty);
   let index = wordscramble[difficulty+"score"].currWordIndex;
   if (index >= wordscramble[difficulty].length){
     index = 0;

@@ -8,9 +8,9 @@ import { Clock, Trophy, Lightbulb, RotateCcw, Star, Target } from 'lucide-react'
 import confetti from 'canvas-confetti';
 import { wordsearchData } from '@/data/progressData';
 const backend_url = import.meta.env.VITE_backend_url
-let wordsearch = wordsearchData()
 
-function getSolvedWords(level: 'beginner' | 'intermediate' | 'advanced'): Set<string> {
+
+function getSolvedWords(wordsearch, level: 'beginner' | 'intermediate' | 'advanced'): Set<string> {
   const solvedWords = new Set<string>();
 
   if (wordsearch[level] && Array.isArray(wordsearch[level].words)) {
@@ -24,6 +24,7 @@ function getSolvedWords(level: 'beginner' | 'intermediate' | 'advanced'): Set<st
   return solvedWords;
 }
 function markWordAsSolved(
+  wordsearch,
   level: 'beginner' | 'intermediate' | 'advanced',
   word: string
 ): void {
@@ -126,6 +127,8 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
   onLevelComplete,
   onBackToMenu
 }) => {
+  let wordsearch = wordsearchData()
+  console.log(wordsearch)
   const { toast } = useToast();
   const config = GAME_CONFIGS[difficulty];
   
@@ -155,9 +158,9 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
     const size = config.gridSize;
     const newGrid: string[][] = Array(size).fill(null).map(() => Array(size).fill(''));
     const wordPlacements: WordData[] = [];
-
+    console.log(wordsearch[difficulty]['words'], config.words)
     // Place words in grid
-    for (const wordData of config.words) {
+    for (const wordData of wordsearch[difficulty]['words']) {
       let placed = false;
       let attempts = 0;
       
@@ -237,7 +240,8 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
     const { grid: newGrid, wordPlacements } = generateGrid();
     setGrid(newGrid);
     setWords(wordPlacements);
-    setFoundWords(getSolvedWords(difficulty));
+    console.log(newGrid, wordPlacements)
+    setFoundWords(getSolvedWords(wordsearch, difficulty));
     setScore(wordsearch[difficulty]['score']);
     setTimer(0);
     setGameCompleted(false);
@@ -305,7 +309,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
       const newFoundWords = new Set(foundWords);
       newFoundWords.add(foundWord.word);
       setFoundWords(newFoundWords);
-      markWordAsSolved(difficulty, selectedWord)
+      markWordAsSolved(wordsearch, difficulty, selectedWord)
       // console.log(wordsearch['beginner'])
       // console.log(foundWord.word)
       

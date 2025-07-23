@@ -7,16 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LevelSelector } from "@/components/vocabulary/LevelSelector";
 import { vocabularyArchadeData } from "@/data/progressData";
 const backend_url = import.meta.env.VITE_backend_url
-let vocabularyArchade = vocabularyArchadeData();
-
-const vocabularyData = {
-  beginner: vocabularyArchade['beginner']['wordDetails'],
-  intermediate: vocabularyArchade['intermediate']['wordDetails'],
-  advanced: vocabularyArchade['advanced']['wordDetails']
-};
 
 
-async function updateScoreAndSolve(difficulty, word) {
+async function updateScoreAndSolve(vocabularyArchade, difficulty, word) {
   console.log(difficulty, word)
   
   const level = vocabularyArchade[difficulty];
@@ -44,7 +37,7 @@ async function updateScoreAndSolve(difficulty, word) {
   }
 }
 
-async function updateBadge(badge, level) {
+async function updateBadge(vocabularyArchade, badge, level) {
   console.log(badge, level, vocabularyArchade[level]['badge'])
   if(vocabularyArchade[level]['badge'] == ""){
     try {
@@ -88,6 +81,14 @@ interface DefinitionOption {
 
 const VocabularyArcade: React.FC = () => {
   // Game state
+  let vocabularyArchade = vocabularyArchadeData();
+
+const vocabularyData = {
+  beginner: vocabularyArchade['beginner']['wordDetails'],
+  intermediate: vocabularyArchade['intermediate']['wordDetails'],
+  advanced: vocabularyArchade['advanced']['wordDetails']
+};
+
   const [gameStarted, setGameStarted] = useState(false);
   const [level, setLevel] = useState<"beginner" | "intermediate" | "advanced">("beginner");
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
@@ -173,7 +174,7 @@ const VocabularyArcade: React.FC = () => {
     if (options[selectedOption].isCorrect) {
       // Correct answer
       // setScore(prev => prev + 1);
-      updateScoreAndSolve(level, currentWord.word)
+      updateScoreAndSolve(vocabularyArchade, level, currentWord.word)
       setScore(vocabularyArchade[level]['score'])
       
       toast({
@@ -240,7 +241,7 @@ const VocabularyArcade: React.FC = () => {
     }
     
     setBadge(newBadge);
-    updateBadge(newBadge, level)
+    updateBadge(vocabularyArchade, newBadge, level)
 
     
     toast({

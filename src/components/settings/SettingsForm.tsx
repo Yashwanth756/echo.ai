@@ -245,7 +245,7 @@ export function SettingsForm() {
               </div>
 
               {/* API Key Section */}
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   API Keys
                 </h2>
@@ -307,7 +307,7 @@ export function SettingsForm() {
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> */}
               
              
               

@@ -51,7 +51,7 @@ export const sendMessageToGemini = async (userMessage: string, topic: string): P
       }
 
       const data = await response.json();
-      console.log("API key data received:", data);
+      // console.log("API key data received:", data);
       apikey = data.apiKey;
       geminiModel = data.model;
       // console.log("API key data:", data);
@@ -197,7 +197,7 @@ export const getLanguageFeedback = async (userMessage: string): Promise<{
       }
 
       const data = await response.json();
-      console.log("API key data received:", data);
+      // console.log("API key data received:", data);
       apikey = data.apiKey;
       geminiModel = data.model;
     

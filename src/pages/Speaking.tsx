@@ -238,7 +238,7 @@ Respond as clean JSON ONLY, using keys:
       }
 
       const data = await response.json();
-      console.log("API key data:", data);
+      // console.log("API key data:", data);
       apikey = data.apiKey;
       geminiModel = data.model;
       // console.log("API key data:", data);

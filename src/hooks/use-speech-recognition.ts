@@ -50,7 +50,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook & {
     const recognition = new SpeechRecognitionClass();
 
     recognition.continuous = true;
-    recognition.interimResults = true;
+    recognition.interimResults = false;
     recognition.lang = 'en-IN'; // Ensure Indian English everywhere
 
     recognition.onstart = () => {

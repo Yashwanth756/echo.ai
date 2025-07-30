@@ -11,7 +11,7 @@ import { RefreshCcw, BookOpen, Sparkles } from "lucide-react";
 import AppSidebar from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { AppLayout } from '@/components/layout/AppLayout';
 type DifficultyLevel = "beginner" | "intermediate" | "advanced";
 
 const difficultyDescriptions = {
@@ -42,9 +42,9 @@ const Story = () => {
   };
 
   return (
-    <SidebarProvider>
+    <AppLayout>
       <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-950 w-full">
-        <AppSidebar />
+        {/* <AppSidebar /> */}
         <div className="flex-1 p-6">
           <div className="max-w-5xl mx-auto space-y-8">
             {/* Header Section */}
@@ -218,7 +218,7 @@ const Story = () => {
           </div>
         </div>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 };
 

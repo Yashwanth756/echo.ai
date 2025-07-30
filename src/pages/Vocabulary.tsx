@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/app-sidebar";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Book, Mic, Headphones, Award, BarChart, Play } from "lucide-react";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
@@ -13,7 +11,7 @@ import { VocabularyChart } from "@/components/vocabulary/VocabularyChart";
 import { DailyChallenge } from "@/components/vocabulary/DailyChallenge";
 import { LevelSelector } from "@/components/vocabulary/LevelSelector";
 import { useDailyVocabulary } from "@/hooks/use-daily-vocabulary";
-
+import { AppLayout } from "@/components/layout/AppLayout";
 const VocabularyTrainer: React.FC = () => {
   const { toast } = useToast();
   const [currentLevel, setCurrentLevel] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
@@ -34,13 +32,7 @@ const VocabularyTrainer: React.FC = () => {
     getRandomWord
   } = useDailyVocabulary();
   
-  const [learnedWords, setLearnedWords] = useState<{
-    adjectives: number;
-    nouns: number;
-    verbs: number;
-    adverbs: number;
-    other: number;
-  }>({
+  const [learnedWords, setLearnedWords] = useState({
     adjectives: 12,
     nouns: 8,
     verbs: 5,
@@ -48,7 +40,6 @@ const VocabularyTrainer: React.FC = () => {
     other: 1
   });
   
-  // Load vocabulary when component mounts or level changes
   useEffect(() => {
     loadVocabulary(currentLevel);
   }, [currentLevel, loadVocabulary]);
@@ -69,10 +60,9 @@ const VocabularyTrainer: React.FC = () => {
   
   const checkPronunciation = (spoken: string) => {
     if (!currentWord) return;
-    
     const spokenLower = spoken.toLowerCase().trim();
     const targetLower = currentWord.word.toLowerCase();
-    
+
     if (spokenLower.includes(targetLower)) {
       toast({
         title: "Great pronunciation!",
@@ -91,29 +81,22 @@ const VocabularyTrainer: React.FC = () => {
   
   const markWordAsLearned = () => {
     if (!currentWord) return;
-    
-    // Update daily progress
     if (dailyProgress < 5) {
       setDailyProgress(prev => prev + 1);
     }
-    
-    // Update learned words stats based on part of speech
+
     setLearnedWords(prev => {
       const newStats = { ...prev };
-      if (currentWord.partOfSpeech === "adjective") {
-        newStats.adjectives += 1;
-      } else if (currentWord.partOfSpeech === "noun") {
-        newStats.nouns += 1;
-      } else if (currentWord.partOfSpeech === "verb") {
-        newStats.verbs += 1;
-      } else if (currentWord.partOfSpeech === "adverb") {
-        newStats.adverbs += 1;
-      } else {
-        newStats.other += 1;
+      switch (currentWord.partOfSpeech) {
+        case "adjective": newStats.adjectives++; break;
+        case "noun": newStats.nouns++; break;
+        case "verb": newStats.verbs++; break;
+        case "adverb": newStats.adverbs++; break;
+        default: newStats.other++;
       }
       return newStats;
     });
-    
+
     setTimeout(() => {
       nextWord();
     }, 1000);
@@ -142,9 +125,7 @@ const VocabularyTrainer: React.FC = () => {
 
   const handleKnowMore = () => {
     if (!currentWord) return;
-    
     const { word, partOfSpeech } = currentWord;
-
     let examples: string[] = [];
 
     if (partOfSpeech === "verb") {
@@ -177,21 +158,18 @@ const VocabularyTrainer: React.FC = () => {
       title: `Example usage for "${word}"`,
       description: (
         <div className="space-y-1">
-          {examples.map((ex, idx) => (
-            <div key={idx}>{ex}</div>
-          ))}
+          {examples.map((ex, idx) => <div key={idx}>{ex}</div>)}
         </div>
       ),
       duration: 6000
     });
   };
 
-  // Show loading state
   if (loading) {
     return (
-      <SidebarProvider>
+      <AppLayout>
         <div className="min-h-screen bg-background flex w-full">
-          <AppSidebar />
+          {/* <AppSidebar /> */}
           <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -200,98 +178,88 @@ const VocabularyTrainer: React.FC = () => {
             </div>
           </div>
         </div>
-      </SidebarProvider>
+      </AppLayout>
     );
   }
 
-  // Show error state
   if (error || !currentWord) {
     return (
-      <SidebarProvider>
+      <AppLayout>
         <div className="min-h-screen bg-background flex w-full">
-          <AppSidebar />
+          {/* <AppSidebar /> */}
           <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8">
             <div className="text-center">
               <h2 className="text-xl font-semibold text-red-600 mb-2">Unable to load vocabulary</h2>
               <p className="text-gray-600 mb-4">Please check your connection and try again</p>
-              <Button onClick={() => loadVocabulary(currentLevel)}>
-                Retry Loading
-              </Button>
+              <Button onClick={() => loadVocabulary(currentLevel)}>Retry Loading</Button>
             </div>
           </div>
         </div>
-      </SidebarProvider>
+      </AppLayout>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col items-center p-4 md:p-8">
+    <AppLayout>
+      <div className="min-h-screen bg-background flex w-full overflow-auto">
+        {/* <AppSidebar /> */}
+        <div className="flex-1 flex flex-col items-center px-2 sm:px-4 md:px-8 py-4">
           <div className="w-full max-w-6xl animate-fade-in">
-            <header className="mb-8 text-center">
-              <h1 className="text-3xl md:text-4xl font-playfair font-bold text-primary mb-2">
+            <header className="mb-6 text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-playfair font-bold text-primary mb-2">
                 Vocabulary Trainer
               </h1>
-              <p className="text-gray-600">Learn, practice, and master new words daily</p>
+              <p className="text-sm sm:text-base text-gray-600">Learn, practice, and master new words daily</p>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Word Learning */}
-              <div className="lg:col-span-2">
-                <div className="mb-4 flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
-                  <div className="flex items-center">
-                    <span className="text-lg font-medium">Daily Progress:</span>
-                    <div className="ml-4 bg-gray-200 h-3 rounded-full w-36">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+              <div className="lg:col-span-2 flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-lg shadow-sm gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <span className="text-sm sm:text-base font-medium">Daily Progress:</span>
+                    <div className="bg-gray-200 h-3 rounded-full w-full sm:w-36">
                       <div 
-                        className="h-3 rounded-full bg-primary" 
+                        className="h-3 rounded-full bg-primary transition-all duration-300" 
                         style={{ width: `${(dailyProgress / 5) * 100}%` }}
                       ></div>
                     </div>
-                    <span className="ml-2 text-sm">{dailyProgress}/5 words</span>
+                    <span className="text-xs sm:text-sm">{dailyProgress}/5 words</span>
                   </div>
-                  <LevelSelector 
-                    currentLevel={currentLevel} 
-                    onLevelChange={handleLevelChange} 
-                  />
+                  <LevelSelector currentLevel={currentLevel} onLevelChange={handleLevelChange} />
                 </div>
 
-                {/* Daily Words Indicator */}
-                <div className="mb-4 bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-primary/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-primary/20">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div className="flex items-center mb-1 sm:mb-0">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                       <span className="text-sm font-medium">Today's Words</span>
                     </div>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-xs text-gray-600">
                       {currentWordIndex + 1} of {totalWords} • Fresh daily content
                     </span>
                   </div>
                 </div>
 
-                {!isSpellMode && (
+                {!isSpellMode ? (
                   <WordCard 
                     word={currentWord}
                     onNextWord={nextWord}
                     onPractice={handlePracticeClick}
                     isListening={isListening}
                   />
-                )}
-
-                {isSpellMode && (
+                ) : (
                   <SpellCheck 
-                    word={currentWord} 
+                    word={currentWord}
                     onCorrect={markWordAsLearned}
                     onNext={nextWord}
                   />
                 )}
 
-                <div className="grid grid-cols-3 gap-3 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2 sm:mt-4">
                   <Button 
                     onClick={toggleSpellMode}
                     variant={isSpellMode ? "default" : "outline"}
-                    className="flex items-center justify-center"
+                    className="flex items-center justify-center w-full"
                   >
                     <Book className="mr-2 h-4 w-4" />
                     Spelling Practice
@@ -300,7 +268,7 @@ const VocabularyTrainer: React.FC = () => {
                   <Button
                     onClick={handleKnowMore}
                     variant="outline"
-                    className="flex items-center justify-center"
+                    className="flex items-center justify-center w-full"
                   >
                     <BarChart className="mr-2 h-4 w-4" />
                     Know More
@@ -309,7 +277,7 @@ const VocabularyTrainer: React.FC = () => {
                   <Button
                     onClick={getRandomWord}
                     variant="outline"
-                    className="flex items-center justify-center"
+                    className="flex items-center justify-center w-full"
                   >
                     <Play className="mr-2 h-4 w-4" />
                     Random
@@ -317,8 +285,7 @@ const VocabularyTrainer: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Column - Stats & Challenges */}
-              <div>
+              <div className="flex flex-col gap-4 mt-6 lg:mt-0">
                 <VocabularyChart stats={learnedWords} />
                 <DailyChallenge />
               </div>
@@ -326,7 +293,7 @@ const VocabularyTrainer: React.FC = () => {
           </div>
         </div>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 };
 

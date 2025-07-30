@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { SidebarProvider } from "@/components/ui/sidebar";
-import AppSidebar from "@/components/app-sidebar";
+import { AppLayout } from "@/components/layout/AppLayout";
 import ConversationContainer from '@/components/conversation/ConversationContainer';
 import { ConversationProvider, useConversation } from '@/contexts/ConversationContext';
 
@@ -58,14 +57,11 @@ const ConversationContent = () => {
 
 const ConversationAI = () => {
   return (
-    <SidebarProvider>
-      <ConversationProvider>
-        <div className="flex min-h-screen bg-background w-full">
-          <AppSidebar />
-          <ConversationContent />
-        </div>
-      </ConversationProvider>
-    </SidebarProvider>
+    <ConversationProvider>
+      <AppLayout>
+        <ConversationContent />
+      </AppLayout>
+    </ConversationProvider>
   );
 };
 

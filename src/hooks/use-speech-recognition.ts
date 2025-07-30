@@ -37,7 +37,7 @@ export const useSpeechRecognition = (): SpeechRecognitionHook & {
       }
     }
     if (finalTranscript) {
-      setTranscript(prev => prev + finalTranscript);
+      setTranscript(prev => prev +' '+ finalTranscript);
     }
     setInterimTranscript(interim);
   }, []);

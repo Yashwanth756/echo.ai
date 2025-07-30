@@ -381,372 +381,342 @@ Respond as clean JSON ONLY, using keys:
     return arr.map(f);
   }
 
-  return (
-    <AppLayout>
-      <div className="mx-auto max-w-2xl py-8 sm:py-12 w-full px-2">
-        <Card className="mb-6 shadow-xl animate-fade-in rounded-2xl">
-          <CardHeader>
-            <h2 className="text-xl font-bold font-playfair text-primary">Speaking Practice</h2>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            {/* Topic Select */}
-            <div>
-              <label className="font-semibold">Choose a topic</label>
-              <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Select topic..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {sampleTopics.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+  return (<AppLayout>
+  <div className="container mx-auto max-w-2xl py-8 sm:py-12 px-4 sm:px-6 w-full">
+    <Card className="mb-6 shadow-xl animate-fade-in rounded-2xl">
+      <CardHeader>
+        <h2 className="text-xl font-bold font-playfair text-primary">Speaking Practice</h2>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {/* Topic Select */}
+        <div>
+          <label className="font-semibold">Choose a topic</label>
+          <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+            <SelectTrigger className="mt-1">
+              <SelectValue placeholder="Select topic..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sampleTopics.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            {/* Browser Support Warning */}
-            {!supported && (
-              <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-700">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-                <span className="text-sm">
-                  Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari for best experience.
-                </span>
-              </div>
-            )}
-
-            {/* Recorder */}
-            <div className="flex items-center gap-3">
-              <Button
-                onClick={handleStart}
-                disabled={recording || !supported}
-                variant="default"
-                className="flex gap-2"
-                aria-label="Start Speaking"
-              >
-                <Mic className="w-5 h-5" />
-                {recording ? "Recording..." : (supported ? "Continue Speaking" : "Not Supported")}
-              </Button>
-              <Button
-                onClick={handleStart}
-                disabled={!recording}
-                variant="secondary"
-                className="flex gap-2"
-                aria-label="Stop Recording"
-              >
-                <CircleStop className="w-5 h-5" />
-                Stop
-              </Button>
-              <Button
-                onClick={handleClearTranscript}
-                disabled={!text || recording}
-                variant="outline"
-                className="flex gap-2"
-                aria-label="Clear Transcript"
-              >
-                <VolumeX className="w-5 h-5" />
-                Clear
-              </Button>
-              <Button
-                onClick={handleAnalyze}
-                disabled={!text || loading || !apiKey}
-                variant="outline"
-                className={`flex gap-2 ${loading ? "animate-pulse" : ""}`}
-                aria-label="Analyze"
-              >
-                {loading ? "Analyzing..." : "Analyze"}
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/settings')}
-                className="ml-auto"
-                title="Settings"
-              >
-                <Settings className="h-5 w-5 text-muted-foreground" />
-              </Button>
-            </div>
-
-            {/* Recording Status Indicator */}
-            {recording && (
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                <span>Recording... Speak clearly. Speech will continue even during pauses. (Auto-stops after 2min silence)</span>
-              </div>
-            )}
-
-            {/* Transcript Display */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium">Speech Transcript (Continuous)</label>
-                {isListening && (
-                  <span className="text-xs text-primary animate-pulse">Listening...</span>
-                )}
-              </div>
-              <Textarea
-                className="text-base min-h-[120px]"
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder="Transcript will build continuously as you speak, including during pauses..."
-              />
-              {text && (
-                <div className="text-xs text-gray-500 mt-1">
-                  Word count: {text.trim().split(/\s+/).length} words
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        {loading && (
-          <div className="mt-4 flex justify-center">
-            <div className="animate-pulse text-primary flex items-center gap-2">
-              <div className="h-2 w-2 bg-primary rounded-full animate-ping"></div>
-              <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: "0.2s" }}></div>
-              <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: "0.4s" }}></div>
-              <span className="ml-2">Analyzing your speech...</span>
-            </div>
+        {/* Browser Support Warning */}
+        {!supported && (
+          <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-700">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm">
+              Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari for best experience.
+            </span>
           </div>
         )}
-        {feedback && (
-          <div className="space-y-6">
-            {/* Parsing error message */}
-            {feedback.parsing_error && (
-              <Card className="rounded-xl border border-red-200 bg-red-50">
-                <CardHeader>
-                  <div className="flex items-center gap-2 text-red-600">
-                    <AlertCircle className="h-5 w-5" />
-                    <span className="font-semibold">Analysis Error</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-red-700 mb-2">
-                    There was an error processing the AI response. Please try again with a different speech sample.
-                  </p>
-                  <div className="text-xs text-red-500 overflow-auto max-h-[200px] p-2 bg-red-100 rounded">
-                    <pre>{feedback.raw}</pre>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" onClick={handleAnalyze} className="text-red-600 border-red-200">
-                    Try Again
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
 
-            {/* 1. Corrected Version */}
-            {feedback.corrected_version && (
-              <Card className="rounded-xl border-0 bg-green-50 shadow">
-                <CardHeader>
-                  <span className="font-bold text-green-700">Corrected Version</span>
-                </CardHeader>
-                <CardContent>
-                  <div className="font-mono">{feedback.corrected_version}</div>
-                </CardContent>
-              </Card>
-            )}
+        {/* Recorder */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Button
+            onClick={handleStart}
+            disabled={recording || !supported}
+            variant="default"
+            className="flex gap-2 w-full sm:w-auto"
+            aria-label="Start Speaking"
+          >
+            <Mic className="w-5 h-5" />
+            {recording ? "Recording..." : (supported ? "Continue Speaking" : "Not Supported")}
+          </Button>
+          <Button
+            onClick={handleStart}
+            disabled={!recording}
+            variant="secondary"
+            className="flex gap-2 w-full sm:w-auto"
+            aria-label="Stop Recording"
+          >
+            <CircleStop className="w-5 h-5" />
+            Stop
+          </Button>
+          <Button
+            onClick={handleClearTranscript}
+            disabled={!text || recording}
+            variant="outline"
+            className="flex gap-2 w-full sm:w-auto"
+            aria-label="Clear Transcript"
+          >
+            <VolumeX className="w-5 h-5" />
+            Clear
+          </Button>
+          <Button
+            onClick={handleAnalyze}
+            disabled={!text || loading || !apiKey}
+            variant="outline"
+            className={`flex gap-2 w-full sm:w-auto ${loading ? "animate-pulse" : ""}`}
+            aria-label="Analyze"
+          >
+            {loading ? "Analyzing..." : "Analyze"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/settings')}
+            className="ml-auto"
+            title="Settings"
+          >
+            <Settings className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </div>
 
-            {/* 2. Highlight Mistakes */}
-            {feedback.mistakes && feedback.mistakes.length > 0 && (
-              <Card className="rounded-xl bg-amber-50 border border-amber-200 shadow">
-                <CardHeader>
-                  <span className="font-semibold text-amber-900">Highlight Mistakes</span>
-                </CardHeader>
-                <CardContent>
-                  <ul className="list-disc ml-4 space-y-2 text-sm">
-                    {feedback.mistakes.map((m: any, idx: number) => (
-                      <li key={idx}>
-                        <b>Mistake:</b> <span className="text-red-600">{m.mistake}</span>
-                        <br />
-                        <b>Correction:</b> <span className="text-green-700">{m.correction}</span>
-                        <br />
-                        <b>Explanation:</b> <span>{m.explanation}</span>
+        {/* Recording Status */}
+        {recording && (
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+            <span>Recording... Speak clearly. Speech will continue even during pauses. (Auto-stops after 2min silence)</span>
+          </div>
+        )}
+
+        {/* Transcript */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-sm font-medium">Speech Transcript (Continuous)</label>
+            {isListening && (
+              <span className="text-xs text-primary animate-pulse">Listening...</span>
+            )}
+          </div>
+          <Textarea
+            className="text-base min-h-[120px] w-full resize-y"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Transcript will build continuously as you speak, including during pauses..."
+          />
+          {text && (
+            <div className="text-xs text-gray-500 mt-1">
+              Word count: {text.trim().split(/\s+/).length} words
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Loading */}
+    {loading && (
+      <div className="mt-4 flex justify-center">
+        <div className="animate-pulse text-primary flex items-center gap-2">
+          <div className="h-2 w-2 bg-primary rounded-full animate-ping"></div>
+          <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: "0.2s" }}></div>
+          <div className="h-2 w-2 bg-primary rounded-full animate-ping" style={{ animationDelay: "0.4s" }}></div>
+          <span className="ml-2">Analyzing your speech...</span>
+        </div>
+      </div>
+    )}
+
+    {/* Feedback */}
+    {feedback && (
+      <div className="space-y-6">
+        {feedback.parsing_error && (
+          <Card className="rounded-xl border border-red-200 bg-red-50">
+            <CardHeader>
+              <div className="flex items-center gap-2 text-red-600">
+                <AlertCircle className="h-5 w-5" />
+                <span className="font-semibold">Analysis Error</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-red-700 mb-2">
+                There was an error processing the AI response. Please try again with a different speech sample.
+              </p>
+              <div className="text-xs text-red-500 overflow-auto max-h-[200px] p-2 bg-red-100 rounded">
+                <pre className="overflow-x-auto whitespace-pre-wrap">{feedback.raw}</pre>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" onClick={handleAnalyze} className="text-red-600 border-red-200">
+                Try Again
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+
+        {feedback.corrected_version && (
+          <Card className="rounded-xl border-0 bg-green-50 shadow">
+            <CardHeader>
+              <span className="font-bold text-green-700">Corrected Version</span>
+            </CardHeader>
+            <CardContent>
+              <div className="font-mono">{feedback.corrected_version}</div>
+            </CardContent>
+          </Card>
+        )}
+
+        {feedback.mistakes?.length > 0 && (
+          <Card className="rounded-xl bg-amber-50 border border-amber-200 shadow">
+            <CardHeader>
+              <span className="font-semibold text-amber-900">Highlight Mistakes</span>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc ml-4 space-y-2 text-sm">
+                {feedback.mistakes.map((m: any, idx: number) => (
+                  <li key={idx}>
+                    <b>Mistake:</b> <span className="text-red-600">{m.mistake}</span><br />
+                    <b>Correction:</b> <span className="text-green-700">{m.correction}</span><br />
+                    <b>Explanation:</b> <span>{m.explanation}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+
+        {(feedback.scores?.grammar || feedback.scores?.vocabulary || feedback.scores?.pronunciation || feedback.scores?.fluency) && (
+          <Card className="shadow rounded-2xl">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-primary font-playfair">Score Breakdown</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {renderScoreSection("Grammar", feedback.scores.grammar)}
+                {renderScoreSection("Vocabulary", feedback.scores.vocabulary)}
+                {renderScoreSection("Pronunciation", feedback.scores.pronunciation)}
+                {renderScoreSection("Fluency", feedback.scores.fluency)}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {feedback.pronunciation_feedback && (
+          <Card className="rounded-xl border-0 bg-blue-50">
+            <CardHeader>
+              <span className="font-bold text-blue-700">Pronunciation Analysis</span>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-1">
+                <b>Difficult or mispronounced words: </b>
+                <span>
+                  {feedback.pronunciation_feedback.difficult_words?.map((w: string, i: number) => (
+                    <span key={i} className="mr-2 inline-block">{w}</span>
+                  )) || "None"}
+                </span>
+              </div>
+              <div className="mb-1">
+                <b>Phonetic tips & mouth advice:</b>{" "}
+                <span>{feedback.pronunciation_feedback.tips || ''}</span>
+              </div>
+              <div>
+                <b>Try practicing: </b>
+                <span>
+                  {feedback.pronunciation_feedback.example_words?.map((w: string, i: number) => (
+                    <span key={i} className="mr-2 inline-block">{w}</span>
+                  )) || null}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {feedback.fluency_feedback && (
+          <Card className="rounded-xl bg-purple-50 border-0">
+            <CardHeader>
+              <span className="font-bold text-purple-700">Fluency Feedback</span>
+            </CardHeader>
+            <CardContent>
+              <div><b>Filler words used:</b> {feedback.fluency_feedback.filler_words_count || 0}</div>
+              <div><b>Unnatural pauses:</b> {feedback.fluency_feedback.unnatural_pauses || "None"}</div>
+              <div><b>Suggestions for smoother speech:</b> {feedback.fluency_feedback.suggestions || ''}</div>
+            </CardContent>
+          </Card>
+        )}
+
+        {feedback.vocabulary_enhancement && (
+          <Card className="rounded-xl bg-yellow-50 border-0">
+            <CardHeader>
+              <span className="font-bold text-yellow-700">Vocabulary Enhancement</span>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <b>Basic/overused words:</b> {feedback.vocabulary_enhancement.basic_words?.map((w: string, i: number) => (
+                  <span key={i} className="mr-2 inline-block">{w}</span>
+                )) || null}
+              </div>
+              {feedback.vocabulary_enhancement.alternatives?.length > 0 && (
+                <div className="mt-2">
+                  <b>Better alternatives & samples:</b>
+                  <ul className="list-disc ml-4">
+                    {feedback.vocabulary_enhancement.alternatives.map((alt: any, i: number) => (
+                      <li key={i}>
+                        <b>{alt.word}:</b> {alt.alternatives?.join(", ") || ''}
+                        {alt.samples && (
+                          <>
+                            <br /><span className="text-xs text-muted-foreground">{alt.samples.join(" – ")}</span>
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-            {/* 3. Scores */}
-            {(feedback.scores?.grammar || feedback.scores?.vocabulary || feedback.scores?.pronunciation || feedback.scores?.fluency) && (
-              <Card className="shadow rounded-2xl">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-primary font-playfair">Score Breakdown</span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {renderScoreSection("Grammar", feedback.scores.grammar)}
-                    {renderScoreSection("Vocabulary", feedback.scores.vocabulary)}
-                    {renderScoreSection("Pronunciation", feedback.scores.pronunciation)}
-                    {renderScoreSection("Fluency", feedback.scores.fluency)}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+        {feedback.communication_tips && (
+          <Card className="rounded-xl bg-primary/10 border-0">
+            <CardHeader>
+              <span className="font-semibold text-primary">Communication Tips</span>
+            </CardHeader>
+            <CardContent>
+              <ul className="list-disc ml-6 text-gray-700">
+                {feedback.communication_tips.map((s: string, i: number) => <li key={i}>{s}</li>)}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* 4. Pronunciation Analysis */}
-            {feedback.pronunciation_feedback && (
-              <Card className="rounded-xl border-0 bg-blue-50">
-                <CardHeader>
-                  <span className="font-bold text-blue-700">Pronunciation Analysis</span>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-1">
-                    <b>Difficult or mispronounced words: </b>
-                    <span>
-                      {Array.isArray(feedback.pronunciation_feedback.difficult_words) ? (
-                        feedback.pronunciation_feedback.difficult_words.map((w: string, i: number) => (
-                          <span key={i} className="mr-2">{w}</span>
-                        ))
-                      ) : (
-                        "None"
-                      )}
-                    </span>
-                  </div>
-                  <div className="mb-1">
-                    <b>Phonetic tips & mouth advice:</b>{" "}
-                    <span>{typeof feedback.pronunciation_feedback.tips === 'string' ? feedback.pronunciation_feedback.tips : ''}</span>
-                  </div>
-                  <div>
-                    <b>Try practicing: </b>
-                    <span>
-                      {Array.isArray(feedback.pronunciation_feedback.example_words) ? (
-                        feedback.pronunciation_feedback.example_words.map((w: string, i: number) => (
-                          <span key={i} className="mr-2">{w}</span>
-                        ))
-                      ) : null}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+        {feedback.overall_summary && (
+          <Card className="rounded-xl bg-green-50 border-0">
+            <CardHeader>
+              <span className="font-bold text-green-700">Final Summary</span>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <b>Overall Score:</b> <span className="text-green-700 font-bold">
+                  {feedback.overall_summary.score || ''} {feedback.overall_summary.level ? `(${feedback.overall_summary.level})` : ''}
+                </span>
+              </div>
+              <div>
+                <b>Recommendation:</b> {feedback.overall_summary.recommendation || ''}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* 5. Fluency Feedback */}
-            {feedback.fluency_feedback && (
-              <Card className="rounded-xl bg-purple-50 border-0">
-                <CardHeader>
-                  <span className="font-bold text-purple-700">Fluency Feedback</span>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <b>Filler words used:</b> {typeof feedback.fluency_feedback.filler_words_count === 'number' ? feedback.fluency_feedback.filler_words_count : 0}
-                  </div>
-                  <div>
-                    <b>Unnatural pauses:</b> {typeof feedback.fluency_feedback.unnatural_pauses === 'string' ? feedback.fluency_feedback.unnatural_pauses : "None"}
-                  </div>
-                  <div>
-                    <b>Suggestions for smoother speech:</b> {typeof feedback.fluency_feedback.suggestions === 'string' ? feedback.fluency_feedback.suggestions : ''}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 6. Vocabulary Enhancement */}
-            {feedback.vocabulary_enhancement && (
-              <Card className="rounded-xl bg-yellow-50 border-0">
-                <CardHeader>
-                  <span className="font-bold text-yellow-700">Vocabulary Enhancement</span>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <b>Basic/overused words:</b> {Array.isArray(feedback.vocabulary_enhancement.basic_words) ? (
-                      feedback.vocabulary_enhancement.basic_words.map((w: string, i: number) => (
-                        <span key={i} className="mr-2">{w}</span>
-                      ))
-                    ) : null}
-                  </div>
-                  {Array.isArray(feedback.vocabulary_enhancement.alternatives) && feedback.vocabulary_enhancement.alternatives.length > 0 ? (
-                    <div className="mt-2">
-                      <b>Better alternatives & samples:</b>
-                      <ul className="list-disc ml-4">
-                        {feedback.vocabulary_enhancement.alternatives.map((alt: any, i: number) => (
-                          <li key={i}>
-                            <b>{alt.word}:</b> {Array.isArray(alt.alternatives) ? alt.alternatives.join(", ") : ''}
-                            {Array.isArray(alt.samples) && (
-                              <>
-                                <br /><span className="text-xs text-muted-foreground">{alt.samples.join(" – ")}</span>
-                              </>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 7. Communication Tips */}
-            {feedback.communication_tips && (
-              <Card className="rounded-xl bg-primary/10 border-0">
-                <CardHeader>
-                  <span className="font-semibold text-primary">Communication Tips</span>
-                </CardHeader>
-                <CardContent>
-                  <ul className="list-disc ml-6 text-gray-700">
-                    {Array.isArray(feedback.communication_tips) ? (
-                      feedback.communication_tips.map((s: string, i: number) => <li key={i}>{s}</li>)
-                    ) : null}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 8. Final Summary */}
-            {feedback.overall_summary && (
-              <Card className="rounded-xl bg-green-50 border-0">
-                <CardHeader>
-                  <span className="font-bold text-green-700">Final Summary</span>
-                </CardHeader>
-                <CardContent>
-                  <div>
-                    <b>Overall Score:</b> <span className="text-green-700 font-bold">
-                      {typeof feedback.overall_summary.score === 'number' ? feedback.overall_summary.score : ''} 
-                      {typeof feedback.overall_summary.level === 'string' ? `(${feedback.overall_summary.level})` : ''}
-                    </span>
-                  </div>
-                  <div>
-                    <b>Recommendation:</b> {typeof feedback.overall_summary.recommendation === 'string' ? feedback.overall_summary.recommendation : ''}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Fallback Raw response (in case JSON failed) */}
-            {feedback.raw && !feedback.parsing_error && (
-              <Card className="rounded-xl">
-                <CardHeader>Gemini Response</CardHeader>
-                <CardContent>
-                  <pre className="text-xs whitespace-pre-wrap">{feedback.raw}</pre>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+        {feedback.raw && !feedback.parsing_error && (
+          <Card className="rounded-xl">
+            <CardHeader>Gemini Response</CardHeader>
+            <CardContent>
+              <pre className="text-xs whitespace-pre-wrap overflow-x-auto">{feedback.raw}</pre>
+            </CardContent>
+          </Card>
         )}
       </div>
+    )}
 
-      {/* No API key warning */}
-      {!apiKey && (
-        <Card className="mt-4 border-yellow-300 bg-yellow-50">
-          <CardContent className="p-4 text-center">
-            <p className="text-yellow-800">
-              Please add your Gemini API key in the Settings page to use the analysis feature.
-            </p>
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/settings')} 
-              className="mt-2 border-yellow-500 text-yellow-700 hover:bg-yellow-100"
-            >
-              Go to Settings
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-    </AppLayout>
-  );
+    {!apiKey && (
+      <Card className="mt-4 border-yellow-300 bg-yellow-50">
+        <CardContent className="p-4 text-center">
+          <p className="text-yellow-800">
+            Please add your Gemini API key in the Settings page to use the analysis feature.
+          </p>
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/settings')} 
+            className="mt-2 border-yellow-500 text-yellow-700 hover:bg-yellow-100"
+          >
+            Go to Settings
+          </Button>
+        </CardContent>
+      </Card>
+    )}
+  </div>
+</AppLayout>
+);
 }

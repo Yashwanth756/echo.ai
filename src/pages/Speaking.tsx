@@ -11,6 +11,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { AlertCircle } from "lucide-react";
 import { handleDailyData } from "@/data/progressData";
+import { set } from "date-fns";
 const backend_url = import.meta.env.VITE_backend_url
 
 // Sample topics for the speaking practice select dropdown
@@ -27,19 +28,15 @@ const sampleTopics = [
 export default function Speaking() {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [recording, setRecording] = useState(false);
-  const [transcript, setTranscript] = useState("");
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<any | null>(null);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const navigate = useNavigate();
-
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   
   // Use the enhanced speech recognition hook
   const {
-    transcript: recognizedText,
+    transcript,
     resetTranscript,
     startListening,
     stopListening,
@@ -50,19 +47,21 @@ export default function Speaking() {
 
   // Sync the recognized text with our component state - but maintain existing transcript
   useEffect(() => {
-    if (recognizedText) {
-      setTranscript(recognizedText);
+    if (transcript) {
+      setText(transcript);
     }
-  }, [recognizedText]);
+  }, [transcript]);
 
   // Display error messages from speech recognition
-  useEffect(() => {
-    if (lastError) {
-      toast.error(`Speech recognition error: ${lastError}`, {
-        duration: 3000,
-      });
-    }
-  }, [lastError]);
+  // useEffect(() => {
+  //   if (lastError) {
+  //     toast.error(`Speech recognition error: ${lastError}`, {
+  //       duration: 3000,
+  //     });
+  //      // If an error occurs (e.g., mic permission denied), stop the recording state
+  //      setRecording(false);
+  //   }
+  // }, [lastError]);
 
   // Load the API key from localStorage on component mount
   useEffect(() => {
@@ -83,69 +82,41 @@ export default function Speaking() {
     }
   }, [navigate]);
 
-  // Start recording (audio + live transcript)
-  const handleStart = async () => {
+  // Start recording (live transcript only)
+  const handleStart = () => {
     // Don't reset transcript here - allow continuation
-    if (!transcript) {
-      setFeedback(null);
-      setAudioUrl(null);
-    }
-    setRecording(true);
-
-    // Start SpeechRecognition (will continue from existing transcript)
-    if (supported) {
-      startListening();
-    } else {
-      toast.error("Speech recognition not supported. Live transcription isn't available in your browser.");
-    }
-
-    // Start audio recording
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new window.MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
-      });
-      
-      audioChunksRef.current = [];
-      mediaRecorder.ondataavailable = (e) => audioChunksRef.current.push(e.data);
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
-      };
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
-    } catch (err) {
-      toast.error("Could not access microphone. Please allow microphone permission.");
+    if (isListening) {
+      stopListening();
       setRecording(false);
+    } else {
+    
+      resetTranscript();
+      setRecording(true);
+      startListening();
+      // toast({
+      //   title: "Listening...",
+      //   description: "Speak now. Your speech will be converted to text."
+      // });
     }
   };
 
-  // Stop recording (audio + live transcript)
+  // Stop recording (live transcript only)
   const handleStop = () => {
     setRecording(false);
     
     // Stop SpeechRecognition
     stopListening();
-    
-    // Stop audio recording
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      
-      // Release microphone
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-    }
   };
 
   // Clear transcript function for manual reset
   const handleClearTranscript = () => {
     resetTranscript();
-    setTranscript("");
+    setText("");
   };
 
   // Enhanced analyze function with better error handling and API communication
   const handleAnalyze = async () => {
-    if (!transcript.trim()) {
+    if (!text.trim()) {
       toast.error("No transcript available. Please record some speech first.");
       return;
     }
@@ -163,7 +134,7 @@ export default function Speaking() {
     
     setLoading(true);
     try {
-      const speechText = transcript;
+      const speechText = text;
       
       // Enhanced Gemini Prompt with clearer instructions:
       const prompt = [
@@ -179,31 +150,31 @@ I will provide you with a transcript of what the user has spoken. Based on that 
 2. **Highlight Mistakes**: List each mistake, the correction, and explain the grammar/vocabulary rule behind it in simple but precise terms.
 
 3. **Grammar, Vocabulary, Pronunciation, and Fluency Scores**:
-   - Provide scores out of 100 for each category.
-   - Categorize the score: 0-60 = Needs Improvement, 61-80 = Average, 81-100 = Good.
-   - Explain why the score was given and what to improve with specific examples.
+  - Provide scores out of 100 for each category.
+  - Categorize the score: 0-60 = Needs Improvement, 61-80 = Average, 81-100 = Good.
+  - Explain why the score was given and what to improve with specific examples.
 
 4. **Pronunciation Analysis**:
-   - Identify any difficult or mispronounced words with high precision.
-   - Give detailed phonetic tips and mouth movement advice.
-   - Provide 2-3 similar words to practice with the same phonetic pattern.
+  - Identify any difficult or mispronounced words with high precision.
+  - Give detailed phonetic tips and mouth movement advice.
+  - Provide 2-3 similar words to practice with the same phonetic pattern.
 
 5. **Fluency Feedback**:
-   - Count exact number of filler words used ("um", "like", "uh").
-   - Identify specific unnatural pauses or abrupt stops.
-   - Suggest concrete techniques for smoother speech flow.
+  - Count exact number of filler words used ("um", "like", "uh").
+  - Identify specific unnatural pauses or abrupt stops.
+  - Suggest concrete techniques for smoother speech flow.
 
 6. **Vocabulary Enhancement**:
-   - Identify basic or overused words in the transcript.
-   - Suggest 2-3 better alternatives with sample sentences showing proper usage.
+  - Identify basic or overused words in the transcript.
+  - Suggest 2-3 better alternatives with sample sentences showing proper usage.
 
 7. **Communication Tips**:
-   - Give 3 personalized tips to help the user improve based on their specific speech pattern.
-   - Make these tips actionable and specific to their current level.
+  - Give 3 personalized tips to help the user improve based on their specific speech pattern.
+  - Make these tips actionable and specific to their current level.
 
 8. **Final Summary**:
-   - Provide an overall score and label (Beginner, Intermediate, Advanced).
-   - Give clear next steps and suggest if the user should retry or move to the next level.
+  - Provide an overall score and label (Beginner, Intermediate, Advanced).
+  - Give clear next steps and suggest if the user should retry or move to the next level.
 
 Please make the feedback positive, constructive, educational, and HIGHLY ACCURATE. Format everything clearly so it can be easily displayed in a dashboard.
 
@@ -290,11 +261,11 @@ Respond as clean JSON ONLY, using keys:
       console.log("API response:", json);
 
       // More robust JSON extraction logic
-      const text = (json?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
+      const text1 = (json?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
       let feedbackObj = null;
       try {
         // Remove markdown code fences if present
-        let cleanText = text;
+        let cleanText = text1;
         if (cleanText.startsWith("```json")) {
           cleanText = cleanText.replace(/^```json/, "").replace(/```$/, "").trim();
         } else if (cleanText.startsWith("```")) {
@@ -317,7 +288,7 @@ Respond as clean JSON ONLY, using keys:
       } catch (e) {
         console.error("Error parsing JSON:", e);
         toast.error("Could not parse the AI response. Please try again.");
-        feedbackObj = { raw: text, parsing_error: true };
+        feedbackObj = { raw: text1, parsing_error: true };
       }
        const currDay = {
         date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
@@ -456,7 +427,7 @@ Respond as clean JSON ONLY, using keys:
                 {recording ? "Recording..." : (supported ? "Continue Speaking" : "Not Supported")}
               </Button>
               <Button
-                onClick={handleStop}
+                onClick={handleStart}
                 disabled={!recording}
                 variant="secondary"
                 className="flex gap-2"
@@ -467,7 +438,7 @@ Respond as clean JSON ONLY, using keys:
               </Button>
               <Button
                 onClick={handleClearTranscript}
-                disabled={!transcript || recording}
+                disabled={!text || recording}
                 variant="outline"
                 className="flex gap-2"
                 aria-label="Clear Transcript"
@@ -477,7 +448,7 @@ Respond as clean JSON ONLY, using keys:
               </Button>
               <Button
                 onClick={handleAnalyze}
-                disabled={!transcript || loading || !apiKey}
+                disabled={!text || loading || !apiKey}
                 variant="outline"
                 className={`flex gap-2 ${loading ? "animate-pulse" : ""}`}
                 aria-label="Analyze"
@@ -514,27 +485,16 @@ Respond as clean JSON ONLY, using keys:
               </div>
               <Textarea
                 className="text-base min-h-[120px]"
-                value={transcript}
-                onChange={e => setTranscript(e.target.value)}
+                value={text}
+                onChange={e => setText(e.target.value)}
                 placeholder="Transcript will build continuously as you speak, including during pauses..."
               />
-              {transcript && (
+              {text && (
                 <div className="text-xs text-gray-500 mt-1">
-                  Word count: {transcript.trim().split(/\s+/).length} words
+                  Word count: {text.trim().split(/\s+/).length} words
                 </div>
               )}
             </div>
-
-            {/* Audio playback */}
-            {audioUrl && (
-              <div>
-                <label className="text-sm font-medium block mb-1">Recorded Audio</label>
-                <audio controls className="w-full">
-                  <source src={audioUrl} />
-                  Your browser does not support audio.
-                </audio>
-              </div>
-            )}
           </CardContent>
         </Card>
 

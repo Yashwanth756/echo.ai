@@ -19,31 +19,28 @@ export const useEnhancedSpeech = (): EnhancedSpeechHook => {
   const [confidence, setConfidence] = useState(0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef<any>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 1. Ref to control the continuous listening behavior
+  const forceKeepAlive = useRef(false);
 
   const isSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
-  const handleStartRecording = useCallback(() => {
+  const setupRecognition = useCallback(() => {
     if (!isSupported) {
       console.error('Speech recognition not supported');
       return;
     }
-
+    
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     
-    // Enhanced configuration for better accuracy
+    // Configuration for accuracy and continuous listening
     recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'en-US'; // Changed back to US English for better accuracy
+    recognitionRef.current.interimResults = false;
+    recognitionRef.current.lang = 'en-US';
     recognitionRef.current.maxAlternatives = 1;
     
     recognitionRef.current.onstart = () => {
       setIsListening(true);
-      // Clear any existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
     };
 
     recognitionRef.current.onresult = (event: any) => {
@@ -54,57 +51,71 @@ export const useEnhancedSpeech = (): EnhancedSpeechHook => {
         const result = event.results[i];
         if (result.isFinal) {
           finalTranscript += result[0].transcript;
-          confidenceScore = Math.max(confidenceScore, result[0].confidence || 0.5);
+          // Use the confidence of the most recent final result
+          confidenceScore = result[0].confidence || 0;
         }
       }
       
       if (finalTranscript) {
-        setTranscript(prev => {
-          const newTranscript = prev + ' ' + finalTranscript.trim();
-          return newTranscript.trim();
-        });
+        // Append new final transcript to the existing one
+        setTranscript(prev => (prev + ' ' + finalTranscript.trim()).trim());
         setConfidence(confidenceScore);
       }
-
-      // Reset timeout on new speech
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      // Auto-stop after 3 seconds of silence
-      timeoutRef.current = setTimeout(() => {
-        if (recognitionRef.current && isListening) {
-          recognitionRef.current.stop();
-        }
-      }, 3000);
     };
 
+    // 2. The key change: onend handler now restarts recognition if needed
     recognitionRef.current.onend = () => {
-      setIsListening(false);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      // Only restart if the user hasn't explicitly stopped it
+      if (forceKeepAlive.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          console.error("Error restarting recognition on end:", e);
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
+      // Attempt to recover from common errors if keep-alive is enabled
+      if (forceKeepAlive.current && (event.error === 'no-speech' || event.error === 'network' || event.error === 'audio-capture')) {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          console.error("Error restarting recognition on error:", e);
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
       }
     };
+  }, [isSupported]);
 
-    recognitionRef.current.start();
-  }, [isSupported, isListening]);
+  const handleStartRecording = useCallback(() => {
+    // 3. Set the flag to true to enable continuous listening
+    forceKeepAlive.current = true;
+    
+    // Initialize recognition if it hasn't been already
+    if (!recognitionRef.current) {
+      setupRecognition();
+    }
+
+    try {
+      recognitionRef.current.start();
+    } catch (e) {
+      console.error("Could not start recognition:", e);
+    }
+  }, [setupRecognition]);
 
   const handleStopRecording = useCallback(() => {
+    // 4. Set the flag to false to disable restarting
+    forceKeepAlive.current = false;
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    setIsListening(false);
   }, []);
 
   const resetTranscript = useCallback(() => {
@@ -114,7 +125,6 @@ export const useEnhancedSpeech = (): EnhancedSpeechHook => {
 
   const speakText = useCallback((text: string) => {
     if ('speechSynthesis' in window) {
-      // Stop any current speech
       window.speechSynthesis.cancel();
       
       const utterance = new SpeechSynthesisUtterance(text);
@@ -137,17 +147,15 @@ export const useEnhancedSpeech = (): EnhancedSpeechHook => {
     }
   }, []);
 
-  // Cleanup on unmount
+  // 5. Cleanup effect to stop recognition when the component unmounts
   useEffect(() => {
     return () => {
-      if (recognitionRef.current && isListening) {
+      forceKeepAlive.current = false;
+      if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
     };
-  }, [isListening]);
+  }, []);
 
   return {
     isListening,

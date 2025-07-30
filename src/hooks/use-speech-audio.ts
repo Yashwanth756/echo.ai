@@ -36,7 +36,7 @@ export const useSpeechAudio = (): SpeechAudioHook => {
     }
     
     if (finalTranscript) {
-      setTranscript(prev => prev + finalTranscript);
+      setTranscript(prev => prev +' '+ finalTranscript);
     }
     setInterimTranscript(interim);
   };

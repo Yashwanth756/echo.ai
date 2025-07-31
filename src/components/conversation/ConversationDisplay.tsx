@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from 'react';
 import {
   Card,
@@ -12,6 +11,7 @@ import { MessageSquare, User, Mic, MicOff, AlertOctagon, Volume, VolumeX, Send, 
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ConversationEntry = {
   speaker: 'ai' | 'user';
@@ -52,6 +52,7 @@ const ConversationDisplay = ({
   correctedSentence
 }: ConversationDisplayProps) => {
   const historyEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Auto-scroll to the bottom of the conversation
   useEffect(() => {
@@ -62,11 +63,13 @@ const ConversationDisplay = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Chat with Iyraa</CardTitle>
-        <CardDescription>Practice your English in a natural conversation with Iyraa, your friendly AI tutor</CardDescription>
+      <CardHeader className={isMobile ? 'p-4 pb-2' : ''}>
+        <CardTitle className={isMobile ? 'text-lg' : ''}>Chat with Iyraa</CardTitle>
+        <CardDescription className={isMobile ? 'text-sm' : ''}>
+          Practice your English in a natural conversation with Iyraa, your friendly AI tutor
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? 'p-4 pt-2' : ''}>
         {hasApiError && (
           <Alert variant="destructive" className="mb-4">
             <AlertOctagon className="h-4 w-4" />
@@ -75,28 +78,28 @@ const ConversationDisplay = ({
             </AlertDescription>
           </Alert>
         )}
-        <div className="h-96 overflow-y-auto border rounded-lg p-4">
+        <div className={`${isMobile ? 'h-64' : 'h-96'} overflow-y-auto border rounded-lg p-2 md:p-4`}>
           {conversationHistory.map((entry, index) => (
-            <div key={index} className={`flex mb-4 ${entry.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}>
-              <div className={`flex max-w-[80%] ${entry.speaker === 'ai' ? 'flex-row' : 'flex-row-reverse'}`}>
-                <div className={`flex items-center justify-center h-8 w-8 rounded-full mr-2 ${
+            <div key={index} className={`flex mb-3 ${entry.speaker === 'ai' ? 'justify-start' : 'justify-end'}`}>
+              <div className={`flex ${isMobile ? 'max-w-[90%]' : 'max-w-[80%]'} ${entry.speaker === 'ai' ? 'flex-row' : 'flex-row-reverse'}`}>
+                <div className={`flex items-center justify-center ${isMobile ? 'h-6 w-6' : 'h-8 w-8'} rounded-full ${isMobile ? 'mr-1' : 'mr-2'} ${
                   entry.speaker === 'ai' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
                 }`}>
-                  {entry.speaker === 'ai' ? <MessageSquare className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                  {entry.speaker === 'ai' ? <MessageSquare className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} /> : <User className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />}
                 </div>
-                <div className={`p-3 pr-12 rounded-lg relative ${
+                <div className={`${isMobile ? 'p-2 pr-8' : 'p-3 pr-12'} rounded-lg relative ${
                   entry.speaker === 'ai' ? 'bg-muted' : 'bg-primary text-primary-foreground'
                 }`}>
-                  <span className="block">{entry.text}</span>
+                  <span className={`block ${isMobile ? 'text-sm' : ''}`}>{entry.text}</span>
                   {entry.speaker === 'ai' && onSpeakMessage && (
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8 absolute top-2 right-2 rounded-full bg-accent text-accent-foreground shadow-glow-accent hover:scale-105 transition-transform hover:bg-accent/90 active:scale-100 focus:ring-2 focus:ring-accent"
+                      className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} absolute ${isMobile ? 'top-1 right-1' : 'top-2 right-2'} rounded-full bg-accent text-accent-foreground shadow-glow-accent hover:scale-105 transition-transform hover:bg-accent/90 active:scale-100 focus:ring-2 focus:ring-accent`}
                       onClick={() => entry.text && onSpeakMessage(entry.text)}
                       title="Listen to this message"
                     >
-                      <Volume className="h-5 w-5" />
+                      <Volume className={`${isMobile ? 'h-3 w-3' : 'h-5 w-5'}`} />
                     </Button>
                   )}
                 </div>
@@ -104,14 +107,14 @@ const ConversationDisplay = ({
             </div>
           ))}
           {isProcessing && (
-            <div className="flex mb-4 justify-start">
-              <div className="flex max-w-[80%] flex-row">
-                <div className="flex items-center justify-center h-8 w-8 rounded-full mr-2 bg-primary text-primary-foreground">
-                  <MessageSquare className="h-4 w-4" />
+            <div className="flex mb-3 justify-start">
+              <div className={`flex ${isMobile ? 'max-w-[90%]' : 'max-w-[80%]'} flex-row`}>
+                <div className={`flex items-center justify-center ${isMobile ? 'h-6 w-6 mr-1' : 'h-8 w-8 mr-2'} rounded-full bg-primary text-primary-foreground`}>
+                  <MessageSquare className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 </div>
-                <div className="p-3 rounded-lg bg-muted">
+                <div className={`${isMobile ? 'p-2' : 'p-3'} rounded-lg bg-muted`}>
                   <div className="flex items-center gap-2">
-                    <div className="animate-pulse">Thinking</div>
+                    <div className={`animate-pulse ${isMobile ? 'text-sm' : ''}`}>Thinking</div>
                     <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                     <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                     <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
@@ -123,7 +126,7 @@ const ConversationDisplay = ({
           <div ref={historyEndRef} />
         </div>
       </CardContent>
-      <CardFooter className="border-t p-4 flex-col">
+      <CardFooter className={`border-t ${isMobile ? 'p-3' : 'p-4'} flex-col`}>
         <RecordingControls
           isListening={isListening}
           isProcessing={isProcessing}
@@ -136,6 +139,7 @@ const ConversationDisplay = ({
           onTextSubmit={onTextSubmit}
           lastUserSentence={lastUserSentence}
           correctedSentence={correctedSentence}
+          isMobile={isMobile}
         />
       </CardFooter>
     </Card>
@@ -154,7 +158,8 @@ const RecordingControls = ({
   onStopSpeaking,
   onTextSubmit,
   lastUserSentence,
-  correctedSentence
+  correctedSentence,
+  isMobile
 }: {
   isListening: boolean;
   isProcessing: boolean;
@@ -167,6 +172,7 @@ const RecordingControls = ({
   onTextSubmit?: (text: string) => void;
   lastUserSentence?: string;
   correctedSentence?: string;
+  isMobile?: boolean;
 }) => {
   const [textInput, setTextInput] = useState('');
 
@@ -180,8 +186,8 @@ const RecordingControls = ({
 
   return (
     <>
-      <div className="flex items-center justify-between w-full mb-4">
-        <div className="text-lg font-medium flex items-center gap-2">
+      <div className={`flex ${isMobile ? 'flex-col gap-3' : 'items-center justify-between'} w-full ${isMobile ? 'mb-3' : 'mb-4'}`}>
+        <div className={`${isMobile ? 'text-sm' : 'text-lg'} font-medium flex items-center gap-2 ${isMobile ? 'justify-center text-center' : ''}`}>
           {isListening ? 'Listening...' : 
            currentQuestion ? currentQuestion : "Type or speak your message"}
           {isSpeaking && (
@@ -189,37 +195,38 @@ const RecordingControls = ({
               onClick={onStopSpeaking} 
               variant="outline"
               size="sm"
-              className="ml-2 flex items-center gap-1"
+              className={`${isMobile ? 'ml-1' : 'ml-2'} flex items-center gap-1`}
             >
-              <VolumeX className="h-4 w-4" /> Stop
+              <VolumeX className="h-4 w-4" /> 
+              {!isMobile && <span>Stop</span>}
             </Button>
           )}
         </div>
         <Button
           onClick={isListening ? onStopRecording : onStartRecording}
           variant={isListening ? "destructive" : "default"}
-          className="rounded-full h-12 w-12 p-0 flex items-center justify-center"
+          className={`rounded-full ${isMobile ? 'h-14 w-14' : 'h-12 w-12'} p-0 flex items-center justify-center ${isMobile ? 'mx-auto' : ''}`}
           disabled={isProcessing}
           title={isListening ? "Stop recording" : "Start recording"}
         >
-          {isListening ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+          {isListening ? <MicOff className={`${isMobile ? 'h-7 w-7' : 'h-6 w-6'}`} /> : <Mic className={`${isMobile ? 'h-7 w-7' : 'h-6 w-6'}`} />}
         </Button>
       </div>
       
       {isListening && (
-        <div className="w-full text-center font-medium bg-muted/30 p-2 rounded-md animate-pulse">
+        <div className={`w-full text-center font-medium bg-muted/30 ${isMobile ? 'p-2 text-sm' : 'p-2'} rounded-md animate-pulse`}>
           {transcript ? transcript : 'Waiting for you to speak...'}
         </div>
       )}
       
-      <form onSubmit={handleTextSubmit} className="w-full mt-4 flex gap-2">
+      <form onSubmit={handleTextSubmit} className={`w-full ${isMobile ? 'mt-3' : 'mt-4'} flex gap-2`}>
         <div className="flex-1">
           <Input
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Type your message here..."
             disabled={isProcessing || isListening}
-            className="w-full"
+            className={`w-full ${isMobile ? 'text-base' : ''}`}
           />
         </div>
         <Button 
@@ -227,23 +234,24 @@ const RecordingControls = ({
           disabled={!textInput.trim() || isProcessing || isListening}
           size="icon"
           title="Send message"
+          className={isMobile ? 'h-10 w-10' : ''}
         >
           <Send className="h-4 w-4" />
         </Button>
       </form>
 
       {lastUserSentence && correctedSentence && !isListening && !isProcessing && (
-        <div className="mt-4 p-3 border rounded-md bg-green-50">
-          <div className="flex items-center gap-2 mb-1.5 text-green-700">
+        <div className={`${isMobile ? 'mt-3 p-2' : 'mt-4 p-3'} border rounded-md bg-green-50`}>
+          <div className={`flex items-center gap-2 ${isMobile ? 'mb-1' : 'mb-1.5'} text-green-700`}>
             <Check className="h-4 w-4" />
-            <span className="font-medium">Sentence Correction</span>
+            <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>Sentence Correction</span>
           </div>
           {lastUserSentence === correctedSentence ? (
-            <p className="text-green-700">Perfect! Your sentence was grammatically correct.</p>
+            <p className={`text-green-700 ${isMobile ? 'text-sm' : ''}`}>Perfect! Your sentence was grammatically correct.</p>
           ) : (
             <div className="space-y-1">
-              <p className="text-muted-foreground">Your sentence: <span className="font-medium text-foreground">{lastUserSentence}</span></p>
-              <p className="text-green-700">Corrected: <span className="font-medium">{correctedSentence}</span></p>
+              <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>Your sentence: <span className="font-medium text-foreground">{lastUserSentence}</span></p>
+              <p className={`text-green-700 ${isMobile ? 'text-sm' : ''}`}>Corrected: <span className="font-medium">{correctedSentence}</span></p>
             </div>
           )}
         </div>

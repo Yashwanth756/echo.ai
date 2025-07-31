@@ -33,7 +33,6 @@ const defaultStreakData = {
     })
   )
 };
-
 export const StreakTracker: React.FC<StreakTrackerProps> = ({ 
   streakData = defaultStreakData,
   currentStreak = 5
@@ -54,35 +53,37 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-medium">
+        <CardTitle className="text-base sm:text-lg font-medium">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-primary" />
             <span>Your Learning Streak</span>
           </div>
         </CardTitle>
         <div className="flex items-center text-primary font-medium">
-          <span className="text-xl">{currentStreak}</span>
-          <span className="ml-1">days</span>
+          <span className="text-lg sm:text-xl">{currentStreak}</span>
+          <span className="ml-1 text-sm sm:text-base">days</span>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between">
-          {days.map((day) => (
-            <div key={day.key} className="flex flex-col items-center">
-              <span className="text-xs text-muted-foreground mb-1">
-                {day.day}
-              </span>
-              <div 
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs 
-                  ${day.completed 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-gray-100 text-gray-400'}`}
-                title={day.score ? `Score: ${day.score}%` : ''}
-              >
-                {day.completed ? '✓' : ''}
+        <div className="overflow-x-auto">
+          <div className="flex justify-start gap-3 min-w-[560px] sm:min-w-0">
+            {days.map((day) => (
+              <div key={day.key} className="flex flex-col items-center w-8">
+                <span className="text-[10px] sm:text-xs text-muted-foreground mb-1">
+                  {day.day}
+                </span>
+                <div 
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-xs 
+                    ${day.completed 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-gray-100 text-gray-400'}`}
+                  title={day.score ? `Score: ${day.score}%` : ''}
+                >
+                  {day.completed ? '✓' : ''}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>

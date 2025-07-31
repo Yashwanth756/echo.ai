@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, TrendingUp, Clock } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { loadDailyData } from "@/data/progressData";
 
 const chartConfig = {
@@ -21,18 +20,15 @@ export const DailyPerformanceChart = () => {
   const [selectedModules, setSelectedModules] = useState<string[]>(['speaking', 'pronunciation', 'vocabulary']);
 
   const getFilteredData = () => {
-   if (timeRange === '7d') {
-      return loadDailyData().slice(0, 7).reverse();
-    }
-    if (timeRange === '14d') {
-      return loadDailyData().slice(0, 14).reverse();
-    }
-    return loadDailyData().slice(0, 30).reverse();
+    const allData = loadDailyData();
+    if (timeRange === '7d') return allData.slice(0, 7).reverse();
+    if (timeRange === '14d') return allData.slice(0, 14).reverse();
+    return allData.slice(0, 30).reverse();
   };
 
   const toggleModule = (module: string) => {
-    setSelectedModules(prev => 
-      prev.includes(module) 
+    setSelectedModules(prev =>
+      prev.includes(module)
         ? prev.filter(m => m !== module)
         : [...prev, module]
     );
@@ -52,7 +48,7 @@ export const DailyPerformanceChart = () => {
             <TrendingUp className="h-5 w-5" />
             Daily Performance Tracking
           </CardTitle>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(['7d', '14d', '30d'] as const).map((range) => (
               <Button
                 key={range}
@@ -65,7 +61,7 @@ export const DailyPerformanceChart = () => {
             ))}
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2 mt-4">
           {Object.entries(chartConfig).map(([key, config]) => (
             <Button
@@ -84,7 +80,7 @@ export const DailyPerformanceChart = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-lg w-full">
           <div className="text-center">
             <div className="text-2xl font-bold text-primary">
               {Math.round(averagePerformance)}%
@@ -107,47 +103,42 @@ export const DailyPerformanceChart = () => {
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="fullDate" 
-                fontSize={12}
-                tick={{ fontSize: 10 }}
-              />
-              <YAxis 
-                domain={[0, 100]}
-                fontSize={12}
-                tick={{ fontSize: 10 }}
-              />
-              <ChartTooltip 
-                content={
-                  <ChartTooltipContent 
-                    formatter={(value, name) => [
-                      `${Math.round(Number(value))}%`,
-                      chartConfig[name as keyof typeof chartConfig]?.label || name
-                    ]}
-                    labelFormatter={(label) => `Date: ${label}`}
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px] sm:min-w-full h-[300px]">
+            <ChartContainer config={chartConfig} className="h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="fullDate" fontSize={12} tick={{ fontSize: 10 }} />
+                  <YAxis domain={[0, 100]} fontSize={12} tick={{ fontSize: 10 }} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => [
+                          `${Math.round(Number(value))}%`,
+                          chartConfig[name as keyof typeof chartConfig]?.label || name
+                        ]}
+                        labelFormatter={(label) => `Date: ${label}`}
+                      />
+                    }
                   />
-                }
-              />
-              <Legend />
-              
-              {selectedModules.map((module) => (
-                <Line
-                  key={module}
-                  type="monotone"
-                  dataKey={module}
-                  stroke={chartConfig[module as keyof typeof chartConfig].color}
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                  name={chartConfig[module as keyof typeof chartConfig].label}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartContainer>
+                  <Legend />
+                  {selectedModules.map((module) => (
+                    <Line
+                      key={module}
+                      type="monotone"
+                      dataKey={module}
+                      stroke={chartConfig[module as keyof typeof chartConfig].color}
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      name={chartConfig[module as keyof typeof chartConfig].label}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

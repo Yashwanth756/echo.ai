@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useRef } from 'react';
 
 interface SpeechAudioHook {
@@ -36,7 +35,7 @@ export const useSpeechAudio = (): SpeechAudioHook => {
     }
     
     if (finalTranscript) {
-      setTranscript(prev => prev +' '+ finalTranscript);
+      setTranscript(prev => prev + finalTranscript);
     }
     setInterimTranscript(interim);
   };

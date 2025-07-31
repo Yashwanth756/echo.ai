@@ -19,7 +19,7 @@ import PartsOfSpeechAnalysis from "@/components/grammar/PartsOfSpeechAnalysis";
 import GrammarFeedback from "@/components/grammar/GrammarFeedback";
 import DailyGrammarChallenge from "@/components/grammar/DailyGrammarChallenge";
 import { analyzeGrammar, grammarData, dailyChallenges, GrammarAnalysisResult } from "@/services/grammarService";
-
+import { AppLayout } from "@/components/layout/AppLayout";
 const Grammar = () => {
   const [text, setText] = useState("");
   const [analysis, setAnalysis] = useState<GrammarAnalysisResult | null>(null);
@@ -38,6 +38,13 @@ const Grammar = () => {
     setText(e.target.value);
   };
 
+  useEffect(() => {
+    console.log("Grammar component mounted");
+    return () => {
+    stopListening();
+    console.log("Grammar component unmounted");
+    }
+  },[])
   const handleAnalyze = async () => {
     if (!text.trim()) {
       toast({
@@ -73,8 +80,10 @@ const Grammar = () => {
   const handleMicClick = () => {
     if (isListening) {
       stopListening();
+      console.log("Stopped listening");
     } else {
       resetTranscript();
+      console.log("Starting listening");
       startListening();
       toast({
         title: "Listening...",
@@ -89,9 +98,9 @@ const Grammar = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
-        <AppSidebar />
+    <AppLayout>
+      <div className="min-h-screen bg-background flex  flex-wrap w-full">
+        {/* <AppSidebar /> */}
         <div className="flex-1 p-8">
           <div className="max-w-4xl mx-auto">
             <header className="mb-8 text-center">
@@ -115,15 +124,16 @@ const Grammar = () => {
                       value={text}
                       onChange={handleTextChange}
                     />
-                    <div className="flex gap-2 mt-4">
-                      <Button onClick={handleAnalyze} disabled={isAnalyzing}>
+                    <div className="flex flex-wrap  gap-2 mt-4">
+                      <Button onClick={handleAnalyze} disabled={isAnalyzing} className="max-sm:w-full">
                         {isAnalyzing ? "Analyzing..." : "Analyze Grammar"}
                       </Button>
                       {supported && (
                         <Button
                           variant="outline"
                           onClick={handleMicClick}
-                          className={isListening ? "bg-red-100 hover:bg-red-200" : ""}
+                        
+                          className={isListening ? "bg-red-100 hover:bg-red-200 max-sm:w-full" : "max-sm:w-full"}
                         >
                           {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
                           {isListening ? "Stop" : "Speak"}
@@ -186,7 +196,7 @@ const Grammar = () => {
           </div>
         </div>
       </div>
-    </SidebarProvider>
+    </AppLayout>
   );
 };
 

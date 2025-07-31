@@ -78,6 +78,7 @@ export function PronunciationMirror() {
           .getTracks()
           .forEach((track) => track.stop());
       }
+      handleStopRecording()
     };
   }, []);
 

@@ -28,7 +28,8 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import QuickQuiz from "./pages/QuickQuiz";
 import { getData } from "./data/progressData";
-
+import Roadmap from "./pages/roadmapTree";
+import RoadmapGraph from "./pages/roadmapGraph";
 const queryClient = new QueryClient();
 
 // Protected Route component
@@ -86,6 +87,16 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/teacher/login" element={<TeacherLogin />} />
               <Route path="/teacher/register" element={<TeacherRegister />} />
+              <Route path='/roadmap' element={
+                <ProtectedRoute>
+                  <Roadmap />
+                </ProtectedRoute>
+              }/>
+              <Route path='/roadmapGraph' element={
+                <ProtectedRoute>
+                  <RoadmapGraph />
+                </ProtectedRoute>
+              }/>
               <Route path="/teacher/dashboard" element={
                 <ProtectedRoute>
                   <TeacherDashboard />

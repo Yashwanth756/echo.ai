@@ -62,7 +62,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="font-playfair text-xl text-primary flex items-center gap-2">
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse">Echo.ai</span>
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse">Echo.ai ehllo</span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

@@ -1,10 +1,9 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { loadDailyData } from "@/data/progressData";
 
 const chartConfig = {
@@ -19,13 +18,13 @@ export const ComparativeAnalysis = () => {
     if (view === 'weekly') {
       const thisWeek = loadDailyData().slice(0, 7).reverse();
       const lastWeek = loadDailyData().slice(7, 14).reverse();
-      
+
       const modules = ['speaking', 'pronunciation', 'vocabulary', 'grammar', 'story', 'reflex'];
-      
+
       return modules.map(module => {
         const currentAvg = thisWeek.reduce((sum, day) => sum + day[module], 0) / 7;
         const previousAvg = lastWeek.reduce((sum, day) => sum + day[module], 0) / 7;
-        
+
         return {
           module: module.charAt(0).toUpperCase() + module.slice(1),
           current: Math.round(currentAvg),
@@ -34,16 +33,15 @@ export const ComparativeAnalysis = () => {
         };
       });
     } else {
-      // Monthly comparison (last 15 days vs previous 15 days)
       const thisMonth = loadDailyData().slice(0, 15).reverse();
       const lastMonth = loadDailyData().slice(15, 30).reverse();
-      
+
       const modules = ['speaking', 'pronunciation', 'vocabulary', 'grammar', 'story', 'reflex'];
-      
+
       return modules.map(module => {
         const currentAvg = thisMonth.reduce((sum, day) => sum + day[module], 0) / 15;
         const previousAvg = lastMonth.reduce((sum, day) => sum + day[module], 0) / 15;
-        
+
         return {
           module: module.charAt(0).toUpperCase() + module.slice(1),
           current: Math.round(currentAvg),
@@ -82,7 +80,7 @@ export const ComparativeAnalysis = () => {
             </Button>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 p-4 bg-gray-50 rounded-lg">
           <div className="text-center">
             <div className={`text-2xl font-bold ${overallImprovement >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -106,50 +104,52 @@ export const ComparativeAnalysis = () => {
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="module" 
-                fontSize={12}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis 
-                domain={[0, 100]}
-                fontSize={12}
-              />
-              <ChartTooltip 
-                content={
-                  <ChartTooltipContent 
-                    formatter={(value, name) => [
-                      `${value}%`,
-                      name === 'current' ? `This ${view === 'weekly' ? 'Week' : 'Month'}` : `Last ${view === 'weekly' ? 'Week' : 'Month'}`
-                    ]}
-                    labelFormatter={(label) => `Module: ${label}`}
+        {/* Responsive and scrollable bar chart */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px] sm:min-w-full h-[300px] sm:h-[400px]">
+            <ChartContainer config={chartConfig} className="h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="module" 
+                    fontSize={10}
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
                   />
-                }
-              />
-              <Legend />
-              
-              <Bar
-                dataKey="previous"
-                fill={chartConfig.previous.color}
-                name={`Last ${view === 'weekly' ? 'Week' : 'Month'}`}
-                radius={[2, 2, 0, 0]}
-              />
-              <Bar
-                dataKey="current"
-                fill={chartConfig.current.color}
-                name={`This ${view === 'weekly' ? 'Week' : 'Month'}`}
-                radius={[2, 2, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartContainer>
+                  <YAxis domain={[0, 100]} fontSize={12} />
+                  <ChartTooltip 
+                    content={
+                      <ChartTooltipContent 
+                        formatter={(value, name) => [
+                          `${value}%`,
+                          name === 'current' ? `This ${view === 'weekly' ? 'Week' : 'Month'}` : `Last ${view === 'weekly' ? 'Week' : 'Month'}`
+                        ]}
+                        labelFormatter={(label) => `Module: ${label}`}
+                      />
+                    }
+                  />
+                  <Legend />
+                  <Bar
+                    dataKey="previous"
+                    fill={chartConfig.previous.color}
+                    name={`Last ${view === 'weekly' ? 'Week' : 'Month'}`}
+                    radius={[2, 2, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="current"
+                    fill={chartConfig.current.color}
+                    name={`This ${view === 'weekly' ? 'Week' : 'Month'}`}
+                    radius={[2, 2, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </div>
 
+        {/* Stats cards */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {data.map((item) => (
             <div key={item.module} className="p-3 border rounded-lg">

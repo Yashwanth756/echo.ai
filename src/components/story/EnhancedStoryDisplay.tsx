@@ -342,69 +342,71 @@ export const EnhancedStoryDisplay: React.FC<EnhancedStoryDisplayProps> = ({
             </Card>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {!sessionStarted ? (
-              <Button 
-                onClick={handleStartPractice} 
-                size="lg"
-                className="bg-green-600 hover:bg-green-700"
-                disabled={!isSupported}
-              >
-                <Mic className="mr-2 h-5 w-5" />
-                Start Practice
-              </Button>
-            ) : (
-              <Button 
-                onClick={handleStopPractice} 
-                size="lg"
-                variant="destructive"
-              >
-                <MicOff className="mr-2 h-5 w-5" />
-                Stop Practice
-              </Button>
-            )}
-            
-            <Button 
-              onClick={() => speakText(words[currentWordIndex]?.word || '')}
-              variant="outline"
-              size="lg"
-              disabled={!words[currentWordIndex]}
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Hear Word
-            </Button>
-            
-            <Button 
-              onClick={handleSpeakStory}
-              variant="outline"
-              size="lg"
-              disabled={isSpeaking}
-            >
-              <Volume2 className="mr-2 h-5 w-5" />
-              Listen to Story
-            </Button>
-            
-            {sessionStarted && (
-              <Button 
-                onClick={handleSkipWord}
-                variant="ghost"
-                size="lg"
-                disabled={currentWordIndex >= words.length - 1}
-              >
-                Skip Word
-              </Button>
-            )}
-            
-            <Button 
-              onClick={handleReset}
-              variant="ghost"
-              size="lg"
-            >
-              <RotateCcw className="mr-2 h-5 w-5" />
-              Reset
-            </Button>
-          </div>
+  {/* Action Buttons */}
+<div
+  className="fixed bottom-16 left-0 w-full bg-white p-3 border-t z-50 flex flex-wrap justify-center gap-3 sm:static sm:p-0 sm:border-0 sm:bg-transparent"
+>
+  {!sessionStarted ? (
+    <Button 
+      onClick={handleStartPractice} 
+      size="lg"
+      className="bg-green-600 hover:bg-green-700 "
+      disabled={!isSupported}
+    >
+      <Mic className="mr-2 h-5 w-5" />
+      Start
+    </Button>
+  ) : (
+    <Button 
+      onClick={handleStopPractice} 
+      size="lg"
+      variant="destructive"
+    >
+      <MicOff className="mr-2 h-5 w-5" />
+      Stop
+    </Button>
+  )}
+
+  <Button 
+    onClick={() => speakText(words[currentWordIndex]?.word || '')}
+    variant="outline"
+    size="lg"
+    disabled={!words[currentWordIndex]}
+  >
+    <Play className="mr-2 h-5 w-5" />
+    Hear Word
+  </Button>
+
+  <Button 
+    onClick={handleSpeakStory}
+    variant="outline"
+    size="lg"
+    disabled={isSpeaking}
+  >
+    <Volume2 className="mr-2 h-5 w-5" />
+    Listen to Story
+  </Button>
+
+  {sessionStarted && (
+    <Button 
+      onClick={handleSkipWord}
+      variant="ghost"
+      size="lg"
+      disabled={currentWordIndex >= words.length - 1}
+    >
+      Skip Word
+    </Button>
+  )}
+
+  <Button 
+    onClick={handleReset}
+    variant="ghost"
+    size="lg"
+  >
+    <RotateCcw className="mr-2 h-5 w-5" />
+    Reset
+  </Button>
+</div>
 
           {/* Progress Bar */}
           <div className="space-y-2">

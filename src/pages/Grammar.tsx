@@ -38,6 +38,13 @@ const Grammar = () => {
     setText(e.target.value);
   };
 
+  useEffect(() => {
+    console.log("Grammar component mounted");
+    return () => {
+    stopListening();
+    console.log("Grammar component unmounted");
+    }
+  },[])
   const handleAnalyze = async () => {
     if (!text.trim()) {
       toast({
@@ -73,8 +80,10 @@ const Grammar = () => {
   const handleMicClick = () => {
     if (isListening) {
       stopListening();
+      console.log("Stopped listening");
     } else {
       resetTranscript();
+      console.log("Starting listening");
       startListening();
       toast({
         title: "Listening...",

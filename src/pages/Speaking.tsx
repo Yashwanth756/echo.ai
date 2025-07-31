@@ -50,7 +50,19 @@ export default function Speaking() {
     if (transcript) {
       setText(transcript);
     }
+
   }, [transcript]);
+
+  useEffect(() => {
+    console.log('mounted Speaking component');
+    return () => {
+      // Cleanup: stop listening when component unmounts
+      // if (isListening) {
+        console.log("Stopping speech recognition on unmount");
+        stopListening();
+        setRecording(false);
+      // }
+    } }, []);
 
   // Display error messages from speech recognition
   // useEffect(() => {

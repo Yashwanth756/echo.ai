@@ -33,7 +33,13 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, onProgressUpd
       onProgressUpdate(0);
     }
   }, [story, onProgressUpdate]);
-
+  useEffect(() => {
+    console.log("story component mounted");
+    return () => {
+    stopListening();
+    console.log("story component unmounted");
+    }
+  },[])
   // Check words when transcript changes - maintain continuous checking
   useEffect(() => {
     if (!isListening || (!transcript && !interimTranscript) || currentWordIndex >= words.length) return;
@@ -73,6 +79,8 @@ export const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, onProgressUpd
     // Keep the transcript for continuous speech (we now set it to full live text)
     setAccumulatedTranscript(liveTranscript);
   }, [transcript, interimTranscript, isListening, currentWordIndex, words, wordStatus, onProgressUpdate]);
+
+  
 
   const handleStartReading = () => {
     if (!supported) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { sendMessageToGemini } from '@/lib/gemini-api';
+const api_url = import.meta.env.VITE_API_URL
 
 interface VocabularyWord {
   word: string;
@@ -79,40 +80,22 @@ export const useDailyVocabulary = () => {
   };
 
   // Fetch vocabulary words from Gemini
-  const fetchVocabularyFromGemini = async (level: string): Promise<VocabularyWord[]> => {
-    const prompt = `Generate 5 vocabulary words for ${level} level English learners. Provide the response as a JSON array with this exact structure:
-
-[
-  {
-    "word": "example",
-    "meaning": "a thing characteristic of its kind or illustrating a general rule",
-    "partOfSpeech": "noun",
-    "phonetic": "/ɪɡˈzɑːmpl/",
-    "example": "This painting is a perfect example of the artist's later work.",
-    "synonyms": ["instance", "case", "illustration", "sample"],
-    "antonyms": ["exception", "anomaly"],
-    "memoryTip": "Think of 'exam' + 'ple' - something you examine as a sample"
-  }
-]
-
-Requirements:
-- ${level === 'beginner' ? 'Simple, common words (3-8 letters)' : 
-      level === 'intermediate' ? 'Moderately challenging words (5-12 letters)' : 
-      'Advanced vocabulary, academic or professional words (6-15 letters)'}
-- Provide accurate phonetic pronunciation
-- Include 2-4 synonyms and 1-3 antonyms
-- Create memorable tips for each word
-- Ensure proper grammar and accurate definitions
-
-Return only the JSON array, no additional text.`;
-
+  const fetchVocabularyFromGemini = async (level: string, offset): Promise<VocabularyWord[]> => {
+    console.log('offset:', offset, level);
+    const map={
+      'beginner': 'easy',
+      'intermediate': 'medium',
+      'advanced': 'hard'
+    }
     try {
-      const response = await sendMessageToGemini(prompt, "vocabulary-generation");
+      console.log("Fetching vocabulary from Gemini for level:", level);
+      const response = await fetch(api_url+`vocabularyTrainer?offset=${offset}&level=${map[level]}` );
+
+      const jsonMatch = await response.json();
       
-      // Extract JSON from response
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        const parsedWords = JSON.parse(jsonMatch[0]);
+        const parsedWords = jsonMatch;
+        console.log(parsedWords)
         return parsedWords;
       } else {
         throw new Error("No valid JSON found in response");
@@ -124,21 +107,15 @@ Return only the JSON array, no additional text.`;
   };
 
   // Load vocabulary for a specific level
-  const loadVocabulary = useCallback(async (level: string) => {
+  const loadVocabulary = useCallback(async (level: string, offset:number) => {
     setLoading(true);
     setError(false);
     setCurrentWordIndex(0);
 
     try {
-      // Check if we have today's data
-      const todaysData = getTodaysData(level);
-      
-      if (todaysData && todaysData.words.length > 0) {
-        // Use cached data for today
-        setVocabularyData(todaysData.words);
-      } else {
-        // Fetch fresh data from Gemini
-        const newWords = await fetchVocabularyFromGemini(level);
+ 
+    
+        const newWords = await fetchVocabularyFromGemini(level, offset);
         
         if (newWords && newWords.length > 0) {
           setVocabularyData(newWords);
@@ -147,7 +124,7 @@ Return only the JSON array, no additional text.`;
         } else {
           throw new Error("No words generated");
         }
-      }
+      
     } catch (err) {
       console.error('Error loading vocabulary:', err);
       setError(true);
@@ -188,9 +165,10 @@ Return only the JSON array, no additional text.`;
 
   // Get random word
   const getRandomWord = () => {
-    if (vocabularyData.length > 0) {
-      const randomIndex = Math.floor(Math.random() * vocabularyData.length);
-      setCurrentWordIndex(randomIndex);
+    if (currentWordIndex < vocabularyData.length - 1) {
+      setCurrentWordIndex(prev => prev + 1);
+    } else {
+      setCurrentWordIndex(0); // Loop back to first word
     }
   };
 

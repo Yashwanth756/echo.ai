@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { generateDailyData } from '@/data/progressData';
 export type UserRole = 'student' | 'teacher';
 const backend_url = import.meta.env.VITE_backend_url
+const api_url = import.meta.env.VITE_API_URL
 export interface User {
   id: string;
   fullName: string;
@@ -73,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
     // Simulate API call
     //const foundUser = MOCK_USERS.find(u => u.email === email && u.role === role);
+
     const response = await fetch(backend_url + "login", {
       method: "POST",
       headers: {
@@ -117,6 +119,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // send.ts
     async function createStudentAccount(email: string, classes, section, password: string, fullName: string, role) {
       console.log('Creating student account:', { email, classes, section, password });
+      const wordScrambleEasyResponse = await fetch(api_url + "wordScramble?offset=1&level=easy")
+      const wordScrambleMediumResponse = await fetch(api_url + "wordScramble?offset=1&level=medium")
+      const wordScrambleHardResponse = await fetch(api_url + "wordScramble?offset=1&level=hard")
+      const wordScrambleData = [...await wordScrambleEasyResponse.json(), ...await wordScrambleMediumResponse.json(), ...await wordScrambleHardResponse.json()]
+      console.log("Word Scramble Easy Response:",wordScrambleData);
+      const vocabularyArchadeResponse = await fetch(api_url + "vocabularyArchade?offset=1&level=easy")
+      const vocabularyArchadeMediumResponse = await fetch(api_url + "vocabularyArchade?offset=1&level=medium")
+      const vocabularyArchadeHardResponse = await fetch(api_url + "vocabularyArchade?offset=1&level=hard")
+      const vocabularyArchadeData = [...await vocabularyArchadeResponse.json(), ...await vocabularyArchadeMediumResponse.json(), ...await vocabularyArchadeHardResponse.json()]
+      console.log("Vocabulary Archade Easy Response:", vocabularyArchadeData);
+      const wordSearchResponse = await fetch(api_url + "wordSearch?offset=1&level=easy")
+      const wordSearchMediumResponse = await fetch(api_url + "wordSearch?offset=1&level=medium")
+      const wordSearchHardResponse = await fetch(api_url + "wordSearch?offset=1&level=hard")
+      const wordSearchData = [...await wordSearchResponse.json(), ...await wordSearchMediumResponse.json(), ...await wordSearchHardResponse.json()]
+      console.log("Word Search Easy Response:", wordSearchData);
+
       try {
         const res = await fetch(backend_url + 'create_account', {
           method: 'POST',
@@ -136,6 +154,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const data = await res.json();
         console.log(data);
         
+        const wordScrambleUpdateResponse = await fetch(backend_url + "update-wordscramble-words", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({email, words:wordScrambleData})
+          });
+
+          const vocabularyArchadeUpdateResponse = await fetch(backend_url + "update-vocab", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({email, words:vocabularyArchadeData})
+          });
+
+          const wordSearchUpdateResponse = await fetch(backend_url + "update-wordsearch", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({email, words:wordSearchData})
+          });
+
         return data;
       } catch (err) {
         console.error('Error:', err);
@@ -145,14 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const register = async (userData: RegisterData): Promise<boolean> => {
-    // Simulate API call - check if user already exists
-    // const existingUser = MOCK_USERS.find(u => u.email === userData.email);/
-    
-    // if (existingUser) {
-    //   return false; // User already exists
-    // }
 
-    // Create new user
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       fullName: userData.fullName,
@@ -161,14 +196,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       classes: userData.classes,
       sections: userData.sections
     };
+
     let data = await createStudentAccount(userData.email, userData.classes, userData.sections, userData.password, userData.fullName, userData.role );
     if (data.status === "exists") {
-        // alert("Warning: Account already exists!");
         return false;
       }
-    // Add to mock database
-    // MOCK_USERS.push(newUser);
-    
     return true;
   };
 

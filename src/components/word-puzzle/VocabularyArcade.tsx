@@ -6,7 +6,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { LevelSelector } from "@/components/vocabulary/LevelSelector";
 import { vocabularyArchadeData } from "@/data/progressData";
+import { offsetSign } from 'recharts/types/util/ChartUtils';
 const backend_url = import.meta.env.VITE_backend_url
+const api_url = import.meta.env.VITE_API_URL
 
 
 async function updateScoreAndSolve(vocabularyArchade, difficulty, word) {
@@ -102,16 +104,21 @@ const vocabularyData = {
   const [score, setScore] = useState(0);
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [badge, setBadge] = useState("");
+  const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   
   // Animation refs
   const wordRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
+  const map = {
+    'beginner':'easy',
+    'intermediate':'medium',
+    'advanced':'hard'
+  }
   // Start a new game
   const startGame = (selectedLevel: "beginner" | "intermediate" | "advanced") => {
     setLevel(selectedLevel);
     setGameStarted(true);
-    setCurrentWordIndex(vocabularyArchade[level]['currentWordIndex']);
+    setCurrentWordIndex(0);
     setScore(vocabularyArchade[level]['score']);
     setRoundCompleted(false);
     setBadge("");
@@ -122,6 +129,42 @@ const vocabularyData = {
       description: "Get ready to become a Word Master!"
     });
   };
+
+  const getNew = async()=>{
+    //get offset
+    const offsetResponse =await fetch(backend_url+`get-vocabularyArchadeId?level=${level}&email=${userSession.email}`)
+    const offset = await offsetResponse.json()
+    console.log(offset.id)
+
+    //get data from api
+    const vocabularyArchadeResponse = await fetch(api_url + `vocabularyArchade?offset=${offset.id+10}&level=${map[level]}`)
+    const vocabularyArchadeData = await vocabularyArchadeResponse.json()
+    console.log('data from api',vocabularyArchadeData)
+
+    //update in local
+    const formattedData = vocabularyArchadeData.map(data=>({...data, isSolved:false, incorrectDefinitions:data.wrongDefinitions}))
+    vocabularyArchade[level]['wordDetails'] = formattedData
+    vocabularyData[level] = formattedData
+    startGame(level)
+
+    // update offset in database
+    const offsetUpdateResponse = await fetch(backend_url + `increment-vocabularyArchadeId?email=${userSession.email}&level=${level}`)
+    console.log(await offsetUpdateResponse.json())
+
+    //clear data in database
+    const clearDataResponse = await fetch(backend_url + `clear-vocabularyArchadeData?email=${userSession.email}&level=${level}`)
+    console.log('clear response ', await clearDataResponse.json())
+
+    //update new data in database
+    const vocabularyArchadeUpdateResponse = await fetch(backend_url + "update-vocab", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({email:userSession.email, words:vocabularyArchadeData})
+    });
+    console.log('updated response', await vocabularyArchadeUpdateResponse.json())
+  }
 
   // Load a word based on the current index
   const loadWord = (index: number, currentLevel = level) => {
@@ -195,6 +238,7 @@ const vocabularyData = {
 
   // Move to the next word
   const nextWord = () => {
+    // 
     if (currentWordIndex + 1 >= vocabularyData[level].length) {
       handleRoundComplete();
     } else {
@@ -365,6 +409,7 @@ const vocabularyData = {
                   <Button variant="outline" onClick={() => setGameStarted(false)}>
                     Change Level
                   </Button>
+                  <Button onClick={getNew}>Get New </Button>
                 </div>
               </div>
             </motion.div>

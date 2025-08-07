@@ -8,7 +8,13 @@ import { Clock, Trophy, Lightbulb, RotateCcw, Star, Target } from 'lucide-react'
 import confetti from 'canvas-confetti';
 import { wordsearchData } from '@/data/progressData';
 const backend_url = import.meta.env.VITE_backend_url
-
+const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+const api_url = import.meta.env.VITE_API_URL
+  const map = {
+    'beginner':'easy',
+    'intermediate':'medium',
+    'advanced':'hard'
+  }
 
 function getSolvedWords(wordsearch, level: 'beginner' | 'intermediate' | 'advanced'): Set<string> {
   const solvedWords = new Set<string>();
@@ -128,7 +134,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
   onBackToMenu
 }) => {
   let wordsearch = wordsearchData()
-  console.log(wordsearch)
+  // console.log(wordsearch)
   const { toast } = useToast();
   const config = GAME_CONFIGS[difficulty];
   
@@ -140,7 +146,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
   const [timer, setTimer] = useState(0);
   const [isSelecting, setIsSelecting] = useState(false);
   const [gameCompleted, setGameCompleted] = useState(false);
-
+  const [offset, setOffset] = useState(1)
   // Timer effect
   useEffect(() => {
     if (!gameCompleted) {
@@ -152,7 +158,46 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
   // Initialize game on mount
   useEffect(() => {
     initializeGame();
-  }, [difficulty]);
+    console.log('reintiallized')
+  }, [difficulty, offset]);
+
+  const getNew = async()=>{
+    console.log(difficulty)
+    //get offset
+    const offsetResponse = await fetch(backend_url + `get-wordSearchId?email=${userSession.email}&level=${difficulty}`)
+    const offsetjson = await offsetResponse.json()
+    // get data from api
+
+    const wordSearchResponse = await fetch(api_url + `wordSearch?offset=${offsetjson.id+10}&level=${map[difficulty]}`)
+    const apiData = await wordSearchResponse.json()
+    console.log(apiData)
+
+    //update in local
+    const formattedData = apiData.map(data => ({word:data.word, hint:data.definition, solved:false}))
+    wordsearch[difficulty]['words'] = formattedData
+    setOffset(offsetjson.id+10)
+
+    // update offset in database
+    const offsetUpdateResponse = await fetch(backend_url + `increment-wordSearch?email=${userSession.email}&level=${difficulty}`)
+    console.log('offset update response', await offsetUpdateResponse.json())
+
+    // clear data
+    const clearResponse = await fetch(backend_url + `clear-wordSearchData?email=${userSession.email}&level=${difficulty}`)
+    console.log('clear response ', await clearResponse.json())
+
+    //update new data
+
+    const wordSearchUpdateResponse = await fetch(backend_url + "update-wordsearch", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({email:userSession.email, words:apiData})
+      });
+
+
+  }
+
 
   const generateGrid = (): { grid: string[][], wordPlacements: WordData[] } => {
     const size = config.gridSize;
@@ -421,7 +466,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
             </div>
             <Button onClick={initializeGame} variant="outline" size="sm">
               <RotateCcw className="h-4 w-4 mr-2" />
-              New Game
+              shuffle
             </Button>
           </div>
         </div>
@@ -485,6 +530,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
                   <div className="flex justify-between text-sm">
                     <span>Words Found</span>
                     <span className="font-bold">{foundWords.size}/{words.length}</span>
+                    {foundWords.size ===words.length? <Button onClick={getNew}>Get New</Button>:""}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 

@@ -12,14 +12,16 @@ import { DailyChallenge } from "@/components/vocabulary/DailyChallenge";
 import { LevelSelector } from "@/components/vocabulary/LevelSelector";
 import { useDailyVocabulary } from "@/hooks/use-daily-vocabulary";
 import { AppLayout } from "@/components/layout/AppLayout";
+const backend_url = import.meta.env.VITE_backend_url
+
 const VocabularyTrainer: React.FC = () => {
   const { toast } = useToast();
   const [currentLevel, setCurrentLevel] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
   const [dailyProgress, setDailyProgress] = useState(2);
   const [isSpellMode, setIsSpellMode] = useState(false);
-
+  const [id, setId] = useState(0);
   const { transcript, resetTranscript, startListening, stopListening, isListening, supported } = useSpeechRecognition();
-  
+  const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   const {
     vocabularyData,
     loading,
@@ -39,10 +41,26 @@ const VocabularyTrainer: React.FC = () => {
     adverbs: 3,
     other: 1
   });
-  
+
+  const map={
+      'beginner': 'easy',
+      'intermediate': 'medium',
+      'advanced': 'hard'
+    }
+
   useEffect(() => {
-    loadVocabulary(currentLevel);
-  }, [currentLevel, loadVocabulary]);
+    const getId = async () => {
+      console.log("Fetching vocabulary trainer ID from server...");
+      const response = await fetch(backend_url + `get-vocabularyTrainerId?level=${map[currentLevel]}&email=${userSession.email}`);
+      const data = await response.json();
+      console.log("ID from server:", data);
+      setId(data.id);
+    }
+    getId()
+  }, []);
+  useEffect(() => {
+    loadVocabulary(currentLevel, id);
+  }, [currentLevel, loadVocabulary, id]);
   
   useEffect(() => {
     if (transcript && !isListening) {
@@ -57,6 +75,11 @@ const VocabularyTrainer: React.FC = () => {
       description: `Vocabulary level set to ${level}. Loading new words...`,
     });
   };
+
+  const getNewData = async () => {
+    await fetch(backend_url+`increment-vocabularyTrainerId?level=${map[currentLevel]}&email=${userSession.email}`)
+    setId(i=> i + 10);
+  }
   
   const checkPronunciation = (spoken: string) => {
     if (!currentWord) return;
@@ -122,6 +145,8 @@ const VocabularyTrainer: React.FC = () => {
   const toggleSpellMode = () => {
     setIsSpellMode(!isSpellMode);
   };
+
+  
 
   const handleKnowMore = () => {
     if (!currentWord) return;
@@ -191,7 +216,7 @@ const VocabularyTrainer: React.FC = () => {
             <div className="text-center">
               <h2 className="text-xl font-semibold text-red-600 mb-2">Unable to load vocabulary</h2>
               <p className="text-gray-600 mb-4">Please check your connection and try again</p>
-              <Button onClick={() => loadVocabulary(currentLevel)}>Retry Loading</Button>
+              <Button onClick={() => loadVocabulary(currentLevel, id)}>Retry Loading</Button>
             </div>
           </div>
         </div>
@@ -234,6 +259,7 @@ const VocabularyTrainer: React.FC = () => {
                       <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                       <span className="text-sm font-medium">Today's Words</span>
                     </div>
+                    {currentWordIndex+1 === totalWords ?<Button onClick={getNewData}>Get New</Button>:""}
                     <span className="text-xs text-gray-600">
                       {currentWordIndex + 1} of {totalWords} • Fresh daily content
                     </span>
@@ -280,7 +306,7 @@ const VocabularyTrainer: React.FC = () => {
                     className="flex items-center justify-center w-full"
                   >
                     <Play className="mr-2 h-4 w-4" />
-                    Random
+                    Next
                   </Button>
                 </div>
               </div>

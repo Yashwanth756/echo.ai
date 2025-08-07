@@ -10,6 +10,8 @@ import { LetterPot } from "./LetterPot";
 import { DifficultySelector } from "./DifficultySelector";
 import { GameOverScreen } from "./GameOverScreen";
 import { wordscrambleData } from "@/data/progressData";
+const backend_url = import.meta.env.VITE_backend_url
+const api_url = import.meta.env.VITE_API_URL
 // Define difficulty levels
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -21,11 +23,9 @@ const MAX_HINTS = {
 
 const WordScrambleGame = () => {
   let wordscramble = wordscrambleData() 
-  const easyWords = wordscramble.easy.map(entry => entry[0]);
-  
-  const mediumWords = wordscramble.medium.map(entry => entry[0]);
-  const hardWords = wordscramble.hard.map(entry => entry[0]);
-console.log("wordscramble", wordscramble)
+  let easyWords = wordscramble.easy.map(entry => entry[0]);
+  let mediumWords = wordscramble.medium.map(entry => entry[0]);
+  let hardWords = wordscramble.hard.map(entry => entry[0]);
   const { toast } = useToast();
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [originalWord, setOriginalWord] = useState<string>("");
@@ -40,6 +40,8 @@ console.log("wordscramble", wordscramble)
   const [potArrangement, setPotArrangement] = useState<(string | null)[]>([]);
   const [showHelpAnimation, setShowHelpAnimation] = useState<boolean>(true);
   
+  const [offset, setOffset] = useState<number>(1);
+
   const tilesContainerRef = useRef<HTMLDivElement>(null);
   const potsContainerRef = useRef<HTMLDivElement>(null);
   const tilesSortableRef = useRef<Sortable | null>(null);
@@ -49,7 +51,7 @@ console.log("wordscramble", wordscramble)
     if (difficulty) {
       startNewGame();
     }
-  }, [difficulty]);
+  }, [difficulty, offset]);
 
   // Setup sortable for tiles when they're rendered
   useEffect(() => {
@@ -148,6 +150,7 @@ console.log("wordscramble", wordscramble)
     setIsLoading(true);
     
     // Get a random word based on difficulty
+    // console.log(wordscramble, easyWords, mediumWords, difficulty);
     const newWord = getRandomWordByDifficulty(wordscramble, easyWords, mediumWords, difficulty);
     setOriginalWord(newWord);
     
@@ -231,6 +234,37 @@ console.log("wordscramble", wordscramble)
         description: `A letter has been placed in its correct position. ${maxHints - hintsUsed - 1} hints left.`
       });
     }
+  };
+  const getNew = async() => {
+    const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+    const offsetResponse = await fetch(backend_url + `get-wordScrambleId?level=${difficulty}&email=${userSession.email}`);
+    const offsetLocal = await offsetResponse.json();
+
+    const wordScrambleResponse = await fetch(api_url + `wordScramble?offset=${offsetLocal.id+10}&level=${difficulty}`);
+    const wordScrambleDifficultyData = await wordScrambleResponse.json();
+    //updation in local
+    const formattedWords = wordScrambleDifficultyData.map((word) => [word.word, 0, false]); // Assuming 0 hints used and not solved
+    wordscramble[difficulty] = formattedWords;
+    setOffset(offsetLocal.id+10);
+
+    // clearing data in database
+    const clearResponse = await fetch(backend_url + `clear-wordScrambleData?level=${difficulty}&email=${userSession.email}`);
+    const clearData = await clearResponse.json();
+    console.log("Cleared old data:", clearData);
+
+    // setting new data in database
+    const wordScrambleUpdateResponse = await fetch(backend_url + "update-wordscramble-words", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({email:userSession.email, words:wordScrambleDifficultyData})
+        });
+    console.log("Updated new words:", await wordScrambleUpdateResponse.json());
+
+    // update offset in database
+    const offsetUpdateResponse = await fetch(backend_url + `increment-wordScrambleId?email=${userSession.email}&level=${difficulty}`)
+    console.log('offset update response', await offsetUpdateResponse.json())
   };
 
   const checkAnswer = () => {
@@ -337,6 +371,8 @@ console.log("wordscramble", wordscramble)
           >
             <Volume2 className="h-5 w-5" />
           </Button>
+          {wordscramble[difficulty+"score"].currWordIndex===wordscramble[difficulty].length?<Button onClick={getNew}>Get New</Button>:""}
+          <p className="text-center bg-slate-50 h-8 p-1 mt-1 rounded-sm overflow-hidden">{wordscramble[difficulty+"score"].currWordIndex} of {wordscramble[difficulty].length}</p>
           
           <Button
             variant="outline"
@@ -347,7 +383,7 @@ console.log("wordscramble", wordscramble)
             disabled={isLoading}
           >
             <RotateCcw className="h-4 w-4" />
-            <span className="hidden sm:inline">New Puzzle</span>
+            <span className="hidden sm:inline">Next Puzzle</span>
           </Button>
           
           <Button

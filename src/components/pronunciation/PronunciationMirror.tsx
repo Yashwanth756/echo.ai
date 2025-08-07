@@ -12,7 +12,10 @@ import { toast } from "sonner";
 import { TalkingFaceDiagram } from "./TalkingFaceDiagram";
 import { sendMessageToGemini } from "@/lib/gemini-api";
 import { handleDailyData } from "@/data/progressData";
+import { set } from "date-fns";
 const COLORS = ["#00c853", "#ffd600", "#ff5252"];
+const backend_url = import.meta.env.VITE_backend_url
+const api_url = import.meta.env.VITE_API_URL
 
 const levels = [
   { label: "Beginner", value: "beginner" },
@@ -28,6 +31,11 @@ interface WordData {
   }[];
 }
 
+const map ={
+  'beginner': 'easy',
+  'intermediate': 'medium',
+  'advanced': 'hard'
+}
 export function PronunciationMirror() {
   const webcamRef = useRef<HTMLVideoElement | null>(null);
   const [level, setLevel] = useState("beginner");
@@ -40,6 +48,8 @@ export function PronunciationMirror() {
   const [currentPhoneme, setCurrentPhoneme] = useState("");
   const [isModelAnimating, setIsModelAnimating] = useState(false);
   const [loadingWord, setLoadingWord] = useState(false);
+  const [id, setId] = useState(0);
+  const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   
   const { 
     isListening, 
@@ -51,9 +61,22 @@ export function PronunciationMirror() {
   } = useSpeechAudio();
 
   // Initialize with first word on component mount
+
   useEffect(() => {
-    handleNewWord();
+    console.log(userSession.email)
+    const getId = async () => {
+      const response =await fetch(backend_url+`get-pronunciationMirrorId?email=${userSession.email}&level=${map[level]}`)
+      const data = await response.json();
+      console.log("ID from server1:", data);
+      setId(data.id);
+    }
+    getId()
   }, [level]);
+
+
+  useEffect(() => {
+    handleNewWordIntialize();
+  }, [id]);
 
   // Try to attach webcam
   useEffect(() => {
@@ -82,8 +105,14 @@ export function PronunciationMirror() {
     };
   }, []);
 
-  // Generate new word using Gemini
-  const handleNewWord = async () => {
+  // Get New word from Api
+  const handleNewWordOnNext = async () => {
+    await fetch(backend_url+`increment-pronunciationMirrorId?email=${userSession.email}&level=${map[level]}`)
+    setId(i=>i + 1);
+  };
+
+  const handleNewWordIntialize = async () => {
+    
     setLoadingWord(true);
     setScore(0);
     setStars(0);
@@ -91,35 +120,41 @@ export function PronunciationMirror() {
     setFeedback("");
     
     try {
-      const prompt = `Generate a ${level} level English word for pronunciation practice. Provide the response in this exact JSON format only, no other text:
+//       const prompt = `Generate a ${level} level English word for pronunciation practice. Provide the response in this exact JSON format only, no other text:
 
-{
-  "word": "example",
-  "syllables": [
-    {
-      "part": "ex",
-      "tip": "Short 'e' sound, tongue relaxed"
-    },
-    {
-      "part": "am",
-      "tip": "Open mouth wide, short 'a' sound"
-    },
-    {
-      "part": "ple",
-      "tip": "Soft 'p', tongue touches roof for 'l'"
-    }
-  ]
-}
+// {
+//   "word": "example",
+//   "syllables": [
+//     {
+//       "part": "ex",
+//       "tip": "Short 'e' sound, tongue relaxed"
+//     },
+//     {
+//       "part": "am",
+//       "tip": "Open mouth wide, short 'a' sound"
+//     },
+//     {
+//       "part": "ple",
+//       "tip": "Soft 'p', tongue touches roof for 'l'"
+//     }
+//   ]
+// }
 
-Make sure the word is appropriate for ${level} level learners and provide 2-4 syllables with specific pronunciation tips for each syllable part.`;
+// Make sure the word is appropriate for ${level} level learners and provide 2-4 syllables with specific pronunciation tips for each syllable part.`;
+      console.log("Fetching new word for level:", map[level]);
+      console.log("ID for request:", id);
+      const response = await fetch(api_url+`pronunciationMirror?uid=${id}&level=${map[level]}`)
 
-      const response = await sendMessageToGemini(prompt, "pronunciation-practice");
-      
       try {
         // Extract JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        const jsonMatch = await response.json();
+        console.log("Response text:", jsonMatch);
         if (jsonMatch) {
-          const parsedData = JSON.parse(jsonMatch[0]);
+          const parsedData = jsonMatch;
+          console.log("Parsed word data:", parsedData);
+          if(parsedData.syllables[0].part ==='none' ) {
+            parsedData.syllables = [{part:'Not available', tip:''}]
+          }
           setWordData(parsedData);
           setPie(parsedData.syllables.map((s: any) => ({ name: s.part, value: 0 })));
         } else {
@@ -295,7 +330,7 @@ Make sure the word is appropriate for ${level} level learners and provide 2-4 sy
                 <Button 
                   variant="secondary" 
                   className="w-full" 
-                  onClick={handleNewWord}
+                  onClick={handleNewWordIntialize}
                   disabled={loadingWord}
                 >
                   {loadingWord ? (
@@ -513,7 +548,7 @@ Make sure the word is appropriate for ${level} level learners and provide 2-4 sy
         {/* Next Word Button */}
         <div className="mt-6 flex justify-center">
           <Button
-            onClick={handleNewWord}
+            onClick={ handleNewWordOnNext}
             variant="outline"
             className="flex gap-1 items-center"
             disabled={loadingWord}

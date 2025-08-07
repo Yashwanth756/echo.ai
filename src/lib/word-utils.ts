@@ -88,7 +88,7 @@ export const updateScore=async(wordscramble, difficulty, word)=>{
 
   const isSolved = entry[2];
   entry[2] = true
-  console.log(wordscramble)
+  // console.log(wordscramble)
 
   if (isSolved) {
     console.log(`Word "${word}" is already solved.`);

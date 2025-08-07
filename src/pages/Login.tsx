@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Volume2, VolumeX, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-
+const api_url = import.meta.env.VITE_API_URL
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +18,9 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+
+
 
   useEffect(() => {
     // Check if already authenticated

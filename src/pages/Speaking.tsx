@@ -107,7 +107,6 @@ Difficulty: ${difficulty}
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState<any | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(null);
   const navigate = useNavigate();
   
   // Use the enhanced speech recognition hook
@@ -140,39 +139,10 @@ Difficulty: ${difficulty}
       // }
     } }, []);
 
-  // Display error messages from speech recognition
-  // useEffect(() => {
-  //   if (lastError) {
-  //     toast.error(`Speech recognition error: ${lastError}`, {
-  //       duration: 3000,
-  //     });
-  //      // If an error occurs (e.g., mic permission denied), stop the recording state
-  //      setRecording(false);
-  //   }
-  // }, [lastError]);
 
-  // Load the API key from localStorage on component mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('gemini-api-key');
-    if (!savedApiKey || savedApiKey.trim() === '') {
-      toast.warning(
-        "No API key found. Please set your Gemini API key in Settings",
-        {
-          action: {
-            label: "Go to Settings",
-            onClick: () => navigate('/settings')
-          },
-          duration: 10000,
-        }
-      );
-    } else {
-      setApiKey(savedApiKey);
-    }
-  }, [navigate]);
 
   // Start recording (live transcript only)
   const handleStart = () => {
-    // Don't reset transcript here - allow continuation
     if (isListening) {
       stopListening();
       setRecording(false);
@@ -181,10 +151,7 @@ Difficulty: ${difficulty}
       resetTranscript();
       setRecording(true);
       startListening();
-      // toast({
-      //   title: "Listening...",
-      //   description: "Speak now. Your speech will be converted to text."
-      // });
+
     }
   };
 
@@ -209,16 +176,7 @@ Difficulty: ${difficulty}
       return;
     }
     
-    // Check if we have an API key
-    // if (!apiKey) {
-    //   toast.error("No Gemini API key found. Please add one in settings.", {
-    //     action: {
-    //       label: "Settings",
-    //       onClick: () => navigate('/settings')
-    //     }
-    //   });
-    //   return;
-    // }
+
     
     setLoading(true);
     try {
@@ -326,8 +284,6 @@ Respond as clean JSON ONLY, using keys:
       // console.log("API key data:", data);
       apikey = data.apiKey;
       geminiModel = data.model;
-      console.log("API key data:", data);
-      setApiKey(data.apiKey);
     } catch (err: any) {
       console.error(err.message || "Unknown error occurred");
     }
@@ -338,7 +294,7 @@ Respond as clean JSON ONLY, using keys:
     }
       // Updated API endpoint to use the most suitable model
       const apiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/`+geminiModel+`:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/`+geminiModel+`:generateContent?key=${apikey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -989,22 +945,7 @@ Respond as clean JSON ONLY, using keys:
       </div>
     )}
 
-    {!apiKey && (
-      <Card className="mt-4 border-yellow-300 bg-yellow-50">
-        <CardContent className="p-4 text-center">
-          <p className="text-yellow-800">
-            Please add your Gemini API key in the Settings page to use the analysis feature.
-          </p>
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/settings')} 
-            className="mt-2 border-yellow-500 text-yellow-700 hover:bg-yellow-100"
-          >
-            Go to Settings
-          </Button>
-        </CardContent>
-      </Card>
-    )}
+   
   </div>
 </AppLayout>
 );

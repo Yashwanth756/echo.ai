@@ -614,7 +614,7 @@ Respond as clean JSON ONLY, using keys:
           </Button>
           <Button
             onClick={handleAnalyze}
-            disabled={!text || loading || !apiKey || (!selectedTopic && !customTopic)}
+            disabled={!text || loading  || (!selectedTopic && !customTopic)}
             variant="outline"
             className={`flex gap-2 w-full sm:w-auto ${loading ? "animate-pulse" : ""}`}
             aria-label="Analyze"

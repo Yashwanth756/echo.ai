@@ -210,15 +210,15 @@ Difficulty: ${difficulty}
     }
     
     // Check if we have an API key
-    if (!apiKey) {
-      toast.error("No Gemini API key found. Please add one in settings.", {
-        action: {
-          label: "Settings",
-          onClick: () => navigate('/settings')
-        }
-      });
-      return;
-    }
+    // if (!apiKey) {
+    //   toast.error("No Gemini API key found. Please add one in settings.", {
+    //     action: {
+    //       label: "Settings",
+    //       onClick: () => navigate('/settings')
+    //     }
+    //   });
+    //   return;
+    // }
     
     setLoading(true);
     try {

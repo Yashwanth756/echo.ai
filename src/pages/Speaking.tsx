@@ -326,8 +326,8 @@ Respond as clean JSON ONLY, using keys:
       // console.log("API key data:", data);
       apikey = data.apiKey;
       geminiModel = data.model;
-      // console.log("API key data:", data);
-      // setApiKey(data.apiKey);
+      console.log("API key data:", data);
+      setApiKey(data.apiKey);
     } catch (err: any) {
       console.error(err.message || "Unknown error occurred");
     }

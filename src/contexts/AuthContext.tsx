@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
       localStorage.setItem('echo_user', JSON.stringify(foundUser));
       localStorage.setItem('authToken', 'mock-token');
-      localStorage.setItem('gemini-api-key', 'AIzaSyBERkzxfo0L9qg8uWPt5YScDqmmIcvIkF4');
+      localStorage.setItem('gemini-api-key', '...................');
 
       // localStorage.setItem('api', 'mock-token');
 
@@ -107,6 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: data.email,
         name: data.fullName,
         role: data.role,
+        sections: data.sections,
+        classes:data.classes,
         loginTime: new Date().toISOString()
       }));
       if (role === 'student') 

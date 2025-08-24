@@ -16,7 +16,7 @@ import { set } from "date-fns";
 const COLORS = ["#00c853", "#ffd600", "#ff5252"];
 const backend_url = import.meta.env.VITE_backend_url
 const api_url = import.meta.env.VITE_API_URL
-
+import { handleSessionUpdate } from "@/data/utils";
 const levels = [
   { label: "Beginner", value: "beginner" },
   { label: "Intermediate", value: "intermediate" },
@@ -256,7 +256,7 @@ export function PronunciationMirror() {
                   };
                   // console.log('starting update', dailyData())
       handleDailyData(currDay);
-      
+      handleSessionUpdate('pronunciation', overallScore)
       setScore(overallScore);
       setPie(phonemeScores);
       

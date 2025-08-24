@@ -27,7 +27,11 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { title } from "process";
 
-const navItems = [
+
+
+export function AppSidebar() {
+  // Get current path to highlight active route
+  let navItems = [
   // { title: "teacher dashboard", route: "/teacher/dashboard", icon: ArrowLeft },
   { title: "Dashboard", route: "/", icon: LayoutDashboard },
   { title: "Speaking Practice", route: "/speaking", icon: Mic },
@@ -44,25 +48,21 @@ const navItems = [
   { title: "Progress Report", route: "/progress", icon: BarChart },
   { title: "Settings", route: "/settings", icon: Settings }
 ];
-
-export function AppSidebar() {
-  // Get current path to highlight active route
   const currentPath = window.location.pathname;
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Hide sidebar on teacher dashboard route
-  if (
-    currentPath === "/teacher/dashboard"
-  ) {
-    return null;
-  }
+   const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+   
+   if(userSession.role === 'teacher') navItems = [{ title: "Student Progress", route: "/teacher/enhanced-dashboard", icon: BarChart },...navItems]
+   if(userSession.role === 'student') navItems = [{ title: "Assignments", route: "/student/dashboard", icon: BarChart },...navItems]
+
 
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="font-playfair text-xl text-primary flex items-center gap-2">
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse">Echo.ai ehllo</span>
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse">Echo.ai</span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

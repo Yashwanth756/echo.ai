@@ -19,7 +19,7 @@ import {
   Settings,
 } from "lucide-react";
 
-const navItems = [
+let navItems = [
   { title: "Dashboard", route: "/", icon: LayoutDashboard },
   { title: "Speaking Practice", route: "/speaking", icon: Mic },
   { title: "Conversation AI", route: "/conversation", icon: MessageSquare },
@@ -98,6 +98,12 @@ const currentPath = window.location.pathname;
   useEffect(() => {
     document.body.classList.add('bg-gradient-animation');
     setMounted(true);
+    const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+
+    if(userSession.role === 'teacher'){
+      if(navItems[0].title != 'Student Progress')
+      navItems = [{ title: "Student Progress", route: "/teacher/enhanced-dashboard", icon: BarChart },...navItems]
+    }
     return () => {
       document.body.classList.remove('bg-gradient-animation');
     };
@@ -106,6 +112,7 @@ const currentPath = window.location.pathname;
   const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
   const userName = userSession.name || 'User';
   const userEmail = userSession.email || 'user@echo.ai';
+  
 
   return (
     <SidebarProvider>
@@ -129,7 +136,7 @@ const currentPath = window.location.pathname;
       <div className="p-4 space-y-4">
         <div className="font-playfair text-xl text-primary flex items-center gap-2">
           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-pulse">
-            Echo.ai ehllo
+            Echo.ai
           </span>
         </div>
 
@@ -141,6 +148,7 @@ const currentPath = window.location.pathname;
                   setIsSidebarOpen(false);
                   window.location.href = item.route; // or use navigate() if using react-router
                 }}
+                
                 onMouseEnter={() => setHoveredItem(item.title)}
                 onMouseLeave={() => setHoveredItem(null)}
                 className={`w-full text-left flex items-center gap-3 text-base py-2 px-3 rounded-lg transition-all duration-300
@@ -148,6 +156,7 @@ const currentPath = window.location.pathname;
                   ${currentPath === item.route ? 'bg-primary text-white shadow-lg animate-pulse' : 'hover:bg-primary/10'}
                 `}
               >
+               
                 <item.icon className="w-5 h-5" />
                 <span>{item.title}</span>
               </button>

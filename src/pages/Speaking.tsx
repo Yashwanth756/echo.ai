@@ -13,7 +13,7 @@ import { AlertCircle } from "lucide-react";
 import { handleDailyData } from "@/data/progressData";
 import { set } from "date-fns";
 const backend_url = import.meta.env.VITE_backend_url
-
+import { handleSessionUpdate } from "@/data/utils";
 // Sample topics for the speaking practice select dropdown
 const sampleTopics = [
   "Daily Life",
@@ -373,6 +373,12 @@ Respond as clean JSON ONLY, using keys:
         totalTime: 0,
         sessionsCompleted: 0
       };
+      const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+      if (userSession.role ==='student'){
+        await handleSessionUpdate('speaking', feedbackObj.scores?.fluency?.score || 0)
+        if(feedbackObj.scores?.grammar?.score>75)
+        await handleSessionUpdate('grammar', feedbackObj.scores?.grammar?.score)
+      }
       // console.log('starting update', dailyData())
       await handleDailyData(currDay);
       // console.log("Updated daily data:", dailyData())

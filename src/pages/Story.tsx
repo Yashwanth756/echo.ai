@@ -12,6 +12,7 @@ import AppSidebar from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppLayout } from '@/components/layout/AppLayout';
+import { handleSessionUpdate } from '@/data/utils';
 type DifficultyLevel = "beginner" | "intermediate" | "advanced";
 
 const difficultyDescriptions = {
@@ -31,6 +32,7 @@ const Story = () => {
   }, [difficulty, generateStory]);
 
   const handleGenerateNewStory = () => {
+    if(progress>70) handleSessionUpdate('story', progress)
     generateStory(difficulty);
     toast.success("Generating a new story...");
     setProgress(0);

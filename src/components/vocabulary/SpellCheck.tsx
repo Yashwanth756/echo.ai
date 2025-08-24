@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Book } from "lucide-react";
-
+import { handleSessionUpdate } from "@/data/utils";
 interface SpellCheckProps {
   word: {
     word: string;
@@ -35,6 +35,7 @@ export const SpellCheck: React.FC<SpellCheckProps> = ({ word, onCorrect, onNext 
     if (userInput.toLowerCase().trim() === word.word.toLowerCase()) {
       setFeedback('Correct! Well done.');
       setIsCorrect(true);
+      handleSessionUpdate('vocabulary', 100)
       setTimeout(() => {
         onCorrect();
       }, 1500);

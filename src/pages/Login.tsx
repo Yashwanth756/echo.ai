@@ -19,22 +19,13 @@ const Login = () => {
   const { login, isAuthenticated } = useAuth();
   const { toast } = useToast();
 
-
-
-
   useEffect(() => {
     // Check if already authenticated
     if (isAuthenticated) {
       const userSession = localStorage.getItem('echo_user');
       if (userSession) {
         const user = JSON.parse(userSession);
-        if (user.role === 'student') {
-          navigate('/student/dashboard');
-        } else if (user.role === 'teacher') {
-          navigate('/teacher/dashboard');
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       }
     }
   }, [navigate, isAuthenticated]);
@@ -52,7 +43,7 @@ const Login = () => {
           title: "Welcome Back!",
           description: "Successfully logged in to your account.",
         });
-        navigate('/student/dashboard');
+        navigate('/');
       } else {
         toast({
           title: "Login Failed",

@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
-import { AssignmentProvider } from "./contexts/AssignmentContext";
+// import { AssignmentProvider } from "./contexts/AssignmentContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Speaking from "./pages/Speaking";
@@ -24,12 +24,14 @@ import Register from "./pages/Register";
 import MirrorPractice from "./pages/MirrorPractice";
 import TeacherLogin from "./pages/TeacherLogin";
 import TeacherRegister from "./pages/TeacherRegister";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import StudentDashboard from "./pages/StudentDashboard";
+// import TeacherDashboard from "./pages/TeacherDashboard";
+// import StudentDashboard from "./pages/StudentDashboard";
 import QuickQuiz from "./pages/QuickQuiz";
 import { getData } from "./data/progressData";
 import Roadmap from "./pages/roadmapTree";
 import RoadmapGraph from "./pages/roadmapGraph";
+import EnhancedTeacherDashboard from "./pages/EnhancedTeacherDashboard";
+import StudentAssignmentDashboard from "./pages/StudentAssignmentDashboard";
 const queryClient = new QueryClient();
 
 // Protected Route component
@@ -78,7 +80,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <AssignmentProvider>
+        {/* <AssignmentProvider> */}
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -92,19 +94,19 @@ const App = () => (
                   <Roadmap />
                 </ProtectedRoute>
               }/>
+               <Route path="/teacher/enhanced-dashboard" element={
+                <ProtectedRoute>
+                  <EnhancedTeacherDashboard />
+                </ProtectedRoute>
+              } />
               <Route path='/roadmapGraph' element={
                 <ProtectedRoute>
                   <RoadmapGraph />
                 </ProtectedRoute>
               }/>
-              <Route path="/teacher/dashboard" element={
-                <ProtectedRoute>
-                  <TeacherDashboard />
-                </ProtectedRoute>
-              } />
               <Route path="/student/dashboard" element={
                 <ProtectedRoute>
-                  <StudentDashboard />
+                  <StudentAssignmentDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/" element={
@@ -175,7 +177,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </AssignmentProvider>
+        {/* </AssignmentProvider> */}
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

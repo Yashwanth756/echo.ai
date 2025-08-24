@@ -31,7 +31,7 @@ const TeacherLogin = () => {
           title: "Welcome Back!",
           description: "Successfully logged in to your teacher dashboard.",
         });
-        navigate('/teacher/dashboard');
+        navigate('/');
       } else {
         toast({
           title: "Login Failed",

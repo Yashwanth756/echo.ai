@@ -6,6 +6,24 @@ export function getWeeklyData(dailyData) {
   return dailyData.slice(0, 7).reverse();
 }
 
+export const handleSessionUpdate = async (module, score) => {
+  try {
+    const userSession = JSON.parse(localStorage.getItem('userSession'))
+    console.log(userSession.email, module)
+    const res = await fetch(backend_url+"increment-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email:userSession.email, module, score }),
+    });
+
+    const data = await res.json();
+    console.log("Response:", data);
+    // alert(data.message || data.error);
+  } catch (err) {
+    console.error(err);
+    // alert("Something went wrong");
+  }
+};
 export function getRadarData(dailyData) {
   const skillKeys = ["speaking", "pronunciation", "vocabulary", "grammar", "story", "reflex"];
   const radarData = [];

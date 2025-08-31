@@ -32,6 +32,8 @@ import Roadmap from "./pages/roadmapTree";
 import RoadmapGraph from "./pages/roadmapGraph";
 import EnhancedTeacherDashboard from "./pages/EnhancedTeacherDashboard";
 import StudentAssignmentDashboard from "./pages/StudentAssignmentDashboard";
+import AlphabetPractice from "./pages/AlphabetPractise";
+import StorySpeakingPractice from "./pages/StorySpeakingPractise";
 const queryClient = new QueryClient();
 
 // Protected Route component
@@ -94,6 +96,16 @@ const App = () => (
                   <Roadmap />
                 </ProtectedRoute>
               }/>
+              <Route path="/alphabet-practice" element={
+                  <ProtectedRoute>
+                    <AlphabetPractice />
+                  </ProtectedRoute>
+                } />
+                <Route path="/story-speaking-practice" element={
+                  <ProtectedRoute>
+                    <StorySpeakingPractice />
+                  </ProtectedRoute>
+                } />
                <Route path="/teacher/enhanced-dashboard" element={
                 <ProtectedRoute>
                   <EnhancedTeacherDashboard />

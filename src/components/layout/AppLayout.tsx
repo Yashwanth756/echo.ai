@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Mic,
   MessageSquare,
+  Award, 
   Play,
   Headphones,
   Book,
@@ -29,6 +30,8 @@ let navItems = [
   { title: "Vocabulary Trainer", route: "/vocabulary", icon: Book },
   { title: "Grammar Clinic", route: "/grammar", icon: Book },
   { title: "Quick Quiz", route: "/quick-quiz", icon: Trophy },
+  { title: "Alphabet Practice", route: "/alphabet-practice", icon: Award },
+  { title: "Story Speaking Practice", route: "/story-speaking-practice", icon: Book },
   { title: "Progress Report", route: "/progress", icon: BarChart },
   { title: "Settings", route: "/settings", icon: Settings },
 ];

@@ -69,6 +69,7 @@ const Login = () => {
     localStorage.setItem('userSession', JSON.stringify({
       email: 'guest@echo.ai',
       name: 'Guest User',
+      role:"student",
       loginTime: new Date().toISOString()
     }));
     navigate('/');

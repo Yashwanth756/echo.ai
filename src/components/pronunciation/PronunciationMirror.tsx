@@ -107,7 +107,7 @@ export function PronunciationMirror() {
 
   // Get New word from Api
   const handleNewWordOnNext = async () => {
-    await fetch(backend_url+`increment-pronunciationMirrorId?email=${userSession.email}&level=${map[level]}`)
+    await fetch(backend_url+`increment-pronunciationMirrorId?email=${userSession.email}&level=${map[level]}&index=${id+1}`)
     setId(i=>i + 1);
   };
 
@@ -120,31 +120,14 @@ export function PronunciationMirror() {
     setFeedback("");
     
     try {
-//       const prompt = `Generate a ${level} level English word for pronunciation practice. Provide the response in this exact JSON format only, no other text:
-
-// {
-//   "word": "example",
-//   "syllables": [
-//     {
-//       "part": "ex",
-//       "tip": "Short 'e' sound, tongue relaxed"
-//     },
-//     {
-//       "part": "am",
-//       "tip": "Open mouth wide, short 'a' sound"
-//     },
-//     {
-//       "part": "ple",
-//       "tip": "Soft 'p', tongue touches roof for 'l'"
-//     }
-//   ]
-// }
-
-// Make sure the word is appropriate for ${level} level learners and provide 2-4 syllables with specific pronunciation tips for each syllable part.`;
       console.log("Fetching new word for level:", map[level]);
       console.log("ID for request:", id);
-      const response = await fetch(api_url+`pronunciationMirror?uid=${id}&level=${map[level]}`)
-
+      let response = await fetch(api_url+`pronunciationMirror?uid=${id}&level=${map[level]}`)
+      console.log("Initial response status:", response.ok);
+      if(!response.ok){
+        await fetch(backend_url+`increment-pronunciationMirrorId?email=${userSession.email}&level=${map[level]}&index=${0}`)
+        setId(0)
+      }
       try {
         // Extract JSON from response
         const jsonMatch = await response.json();

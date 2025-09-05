@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // await checkandUpdateData()
     // console.log(data)
     
-    if (data.success) {
+    if (data.success && data.role === role) {
       const foundUser = {
         id: data.id,
         fullName: data.fullName,

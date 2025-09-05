@@ -16,7 +16,7 @@ const backend_url = import.meta.env.VITE_backend_url
 
 const VocabularyTrainer: React.FC = () => {
   const { toast } = useToast();
-  const [currentLevel, setCurrentLevel] = useState<"beginner" | "intermediate" | "advanced">("intermediate");
+  const [currentLevel, setCurrentLevel] = useState<"beginner" | "intermediate" | "advanced">("beginner");
   const [dailyProgress, setDailyProgress] = useState(2);
   const [isSpellMode, setIsSpellMode] = useState(false);
   const [id, setId] = useState(0);
@@ -77,7 +77,7 @@ const VocabularyTrainer: React.FC = () => {
   };
 
   const getNewData = async () => {
-    await fetch(backend_url+`increment-vocabularyTrainerId?level=${map[currentLevel]}&email=${userSession.email}`)
+    await fetch(backend_url+`increment-vocabularyTrainerId?level=${map[currentLevel]}&email=${userSession.email}&index=${id+10}`);
     setId(i=> i + 10);
   }
   
@@ -240,7 +240,7 @@ const VocabularyTrainer: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               <div className="lg:col-span-2 flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-lg shadow-sm gap-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                     <span className="text-sm sm:text-base font-medium">Daily Progress:</span>
                     <div className="bg-gray-200 h-3 rounded-full w-full sm:w-36">
                       <div 
@@ -249,7 +249,7 @@ const VocabularyTrainer: React.FC = () => {
                       ></div>
                     </div>
                     <span className="text-xs sm:text-sm">{dailyProgress}/5 words</span>
-                  </div>
+                  </div> */}
                   <LevelSelector currentLevel={currentLevel} onLevelChange={handleLevelChange} />
                 </div>
 

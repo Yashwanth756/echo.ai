@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { sendMessageToGemini } from '@/lib/gemini-api';
 const api_url = import.meta.env.VITE_API_URL
+const backend_url = import.meta.env.VITE_backend_url
 
 interface VocabularyWord {
   word: string;
@@ -25,6 +26,7 @@ export const useDailyVocabulary = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [currentWordIndex, setCurrentWordIndex] = useState<number>(0);
+  const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
 
   // Get today's date as string
   const getTodayKey = () => {
@@ -89,13 +91,20 @@ export const useDailyVocabulary = () => {
     }
     try {
       console.log("Fetching vocabulary from Gemini for level:", level);
-      const response = await fetch(api_url+`vocabularyTrainer?offset=${offset}&level=${map[level]}` );
-
+      let response;
+      console.log(offset, map[level])
+      try{
+       response = await fetch(api_url+`vocabularyTrainer?offset=${offset}&level=${map[level]}` );
+        // console.log(response.ok, await response.clone().text());
+      }catch(e){
+          await fetch(backend_url+`increment-vocabularyTrainerId?level=${map[level]}&email=${userSession.email}&index=${0}`);
+         response = await fetch(api_url+`vocabularyTrainer?offset=${0}&level=${map[level]}` );
+      }
       const jsonMatch = await response.json();
-      
+      // console.log('response from gemini:', jsonMatch);
       if (jsonMatch) {
         const parsedWords = jsonMatch;
-        console.log(parsedWords)
+        // console.log(parsedWords)
         return parsedWords;
       } else {
         throw new Error("No valid JSON found in response");

@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardHeader } from "./DashboardHeader";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router-dom";
 
 
 // If you didn’t export it from another file, define it locally:
@@ -32,6 +33,8 @@ let navItems = [
   { title: "Quick Quiz", route: "/quick-quiz", icon: Trophy },
   { title: "Alphabet Practice", route: "/alphabet-practice", icon: Award },
   { title: "Story Speaking Practice", route: "/story-speaking-practice", icon: Book },
+  // Nursery & Kindergarten Dashboard before Progress Report
+  { title: "Nursery & Kindergarten", route: "/nursery-kindergarten-dashboard", icon: Award },
   { title: "Progress Report", route: "/progress", icon: BarChart },
   { title: "Settings", route: "/settings", icon: Settings },
 ];
@@ -97,7 +100,7 @@ export function AppLayout({ children, showBackButton = false }: AppLayoutProps) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 const currentPath = window.location.pathname;
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
     document.body.classList.add('bg-gradient-animation');
     setMounted(true);
@@ -149,7 +152,7 @@ const currentPath = window.location.pathname;
               <button
                 onClick={() => {
                   setIsSidebarOpen(false);
-                  window.location.href = item.route; // or use navigate() if using react-router
+                  navigate(item.route) // or use navigate() if using react-router
                 }}
                 
                 onMouseEnter={() => setHoveredItem(item.title)}

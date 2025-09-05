@@ -46,6 +46,8 @@ export function AppSidebar() {
   { title: "Quick Quiz", route: "/quick-quiz", icon: Trophy },
   { title: "Alphabet Practice", route: "/alphabet-practice", icon: Award },
   { title: "Story Speaking Practice", route: "/story-speaking-practice", icon: Book },
+  // Nursery & Kindergarten Dashboard before Progress Report
+  { title: "Nursery & Kindergarten", route: "/nursery-kindergarten-dashboard", icon: Award },
   // Progress Report now follows
   { title: "Progress Report", route: "/progress", icon: BarChart },
   { title: "Settings", route: "/settings", icon: Settings }

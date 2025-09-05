@@ -167,8 +167,16 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
     const offsetResponse = await fetch(backend_url + `get-wordSearchId?email=${userSession.email}&level=${difficulty}`)
     const offsetjson = await offsetResponse.json()
     // get data from api
-
-    const wordSearchResponse = await fetch(api_url + `wordSearch?offset=${offsetjson.id+10}&level=${map[difficulty]}`)
+    let wordSearchResponse;
+    try{
+     wordSearchResponse = await fetch(api_url + `wordSearch?offset=${offsetjson.id+10}&level=${map[difficulty]}`)
+     const offsetUpdateResponse = await fetch(backend_url + `increment-wordSearch?email=${userSession.email}&level=${difficulty}&index=${offsetjson.id+10}`)
+    console.log('offset update response', await offsetUpdateResponse.json())
+    }catch(e){
+       wordSearchResponse = await fetch(api_url + `wordSearch?offset=${0}&level=${map[difficulty]}`)
+       const offsetUpdateResponse = await fetch(backend_url + `increment-wordSearch?email=${userSession.email}&level=${difficulty}&index=${0}`)
+    console.log('offset update response', await offsetUpdateResponse.json())
+    }
     const apiData = await wordSearchResponse.json()
     console.log(apiData)
 
@@ -178,8 +186,7 @@ export const WordSearchGame: React.FC<WordSearchGameProps> = ({
     setOffset(offsetjson.id+10)
 
     // update offset in database
-    const offsetUpdateResponse = await fetch(backend_url + `increment-wordSearch?email=${userSession.email}&level=${difficulty}`)
-    console.log('offset update response', await offsetUpdateResponse.json())
+    
 
     // clear data
     const clearResponse = await fetch(backend_url + `clear-wordSearchData?email=${userSession.email}&level=${difficulty}`)

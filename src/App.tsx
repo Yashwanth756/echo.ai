@@ -34,6 +34,7 @@ import EnhancedTeacherDashboard from "./pages/EnhancedTeacherDashboard";
 import StudentAssignmentDashboard from "./pages/StudentAssignmentDashboard";
 import AlphabetPractice from "./pages/AlphabetPractise";
 import StorySpeakingPractice from "./pages/StorySpeakingPractise";
+import NurseryKindergartenDashboard from "./pages/NurseryKindergartenDashboard";
 const queryClient = new QueryClient();
 
 // Protected Route component
@@ -109,6 +110,11 @@ const App = () => (
                <Route path="/teacher/enhanced-dashboard" element={
                 <ProtectedRoute>
                   <EnhancedTeacherDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/nursery-kindergarten-dashboard" element={
+                <ProtectedRoute>
+                  <NurseryKindergartenDashboard />
                 </ProtectedRoute>
               } />
               <Route path='/roadmapGraph' element={

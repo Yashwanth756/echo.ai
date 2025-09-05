@@ -113,12 +113,12 @@ const Login = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Link
+                    {/* <Link
                       to="/forgot-password"
                       className="text-sm text-primary hover:text-primary/80 transition-colors"
                     >
                       Forgot password?
-                    </Link>
+                    </Link> */}
                   </div>
                   <div className="relative">
                     <Input

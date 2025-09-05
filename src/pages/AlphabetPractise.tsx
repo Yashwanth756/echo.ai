@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
-// import { englishWords } from "@/data/englishWords";
 import { englishWords } from "@/data/englishWords";
+
 const PIXABAY_API_KEY = "51990311-e11fd7b242b90c9c02303dd64";
 
 const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
@@ -23,24 +23,13 @@ function AlphabetPractice() {
 
   const handleLetterClick = (letter: string) => {
     setSelectedLetter(letter);
-    setWordOffset(3);
+    // Show all words for the selected letter
     const filtered = englishWords.filter(w => w[0].toUpperCase() === letter);
-    setWords(filtered.slice(0, 3));
+    setWords(filtered);
     setImages([]);
     setCurrentWord("");
     setSpokenWord("");
     setFeedback("");
-  };
-
-  const handleLoadMore = async () => {
-    if (!selectedLetter) return;
-    setLoadingImages(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading for UX
-    const filtered = englishWords.filter(w => w[0].toUpperCase() === selectedLetter);
-    const newOffset = wordOffset + 3;
-    setWords(filtered.slice(0, newOffset));
-    setWordOffset(newOffset);
-    setLoadingImages(false);
   };
 
   const fetchImages = async (word: string) => {
@@ -129,7 +118,7 @@ function AlphabetPractice() {
     <AppLayout>
       <div className="min-h-screen bg-blue-50 p-4 flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-4">Alphabet Practice</h1>
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6 justify-center w-full">
           {alphabet.map((letter) => (
             <button
               key={letter}
@@ -140,7 +129,7 @@ function AlphabetPractice() {
             </button>
           ))}
         </div>
-        <div className="w-full max-w-xl mb-6 flex items-center gap-3">
+        <div className="w-full max-w-xl mb-6 flex flex-col sm:flex-row items-center gap-3 relative">
           <input
             type="text"
             value={searchTerm}
@@ -172,7 +161,7 @@ function AlphabetPractice() {
         {selectedLetter && (
           <div className="w-full max-w-xl bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 border-2 border-blue-300 dark:border-gray-700">
             <h2 className="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-300">Words starting with "{selectedLetter}"</h2>
-            <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex flex-wrap gap-3 mb-4 justify-center w-full">
               {words.map((word) => (
                 <button
                   key={word}
@@ -188,17 +177,10 @@ function AlphabetPractice() {
                 </button>
               ))}
             </div>
-            <button
-              className="px-4 py-2 rounded-lg border-2 border-blue-400 dark:border-blue-300 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold shadow hover:bg-blue-200 dark:hover:bg-blue-800 transition-all duration-200 mb-4"
-              onClick={handleLoadMore}
-              disabled={loadingImages}
-            >
-              {loadingImages ? "Loading..." : "Load More"}
-            </button>
             {currentWord && (
               <div className="mt-6 border-2 border-blue-300 dark:border-blue-700 rounded-xl p-4 bg-blue-50 dark:bg-gray-800 shadow-lg">
                 <h3 className="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300">Practice: {currentWord}</h3>
-                <div className="flex gap-4 mb-4 min-h-[136px] items-center">
+                <div className="flex flex-wrap gap-4 mb-4 min-h-[136px] items-center justify-center w-full">
                   {loadingImages ? (
                     <div className="flex items-center justify-center w-full">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-300"></div>
@@ -209,8 +191,8 @@ function AlphabetPractice() {
                         key={idx}
                         src={url}
                         alt={currentWord}
-                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-700 shadow"
-                        onError={e => { e.currentTarget.src = "https://via.placeholder.com/96?text=No+Image"; }}
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-700 shadow flex-shrink-0"
+                        onError={e => { e.currentTarget.src = 'https://via.placeholder.com/96?text=No+Image'; }}
                       />
                     ))
                   )}
@@ -241,9 +223,6 @@ function AlphabetPractice() {
             )}
           </div>
         )}
-        <div className="mt-8 text-sm text-gray-500 dark:text-gray-300 max-w-xl text-center border-t pt-4">
-          <p className="mt-2">Completed words are marked with <span className="text-green-600 dark:text-green-400 text-xl">✔️</span></p>
-        </div>
       </div>
     </AppLayout>
   );

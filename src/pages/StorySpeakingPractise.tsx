@@ -12,13 +12,32 @@ import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { AlertCircle } from "lucide-react";
 import { handleDailyData } from "@/data/progressData";
 import { set } from "date-fns";
+import { s } from "node_modules/framer-motion/dist/types.d-CtuPurYT";
 const backend_url = import.meta.env.VITE_backend_url
-
+const api_url = import.meta.env.VITE_API_URL
 // Stories for each level
 const stories = {
-  basic: "The cat sat on the mat.",
-  medium: "The curious cat explored the garden and chased butterflies.",
-  hard: "Despite the looming thunderstorm, the adventurous cat leapt gracefully across the slippery rooftops, seeking shelter."
+  basic: [
+    "The cat sat on the mat.",
+    "A dog barked at the moon.",
+    "The sun is bright today.",
+    "Birds sing in the morning.",
+    "The fish swims in the pond."
+  ],
+  medium: [
+    "The curious cat explored the garden and chased butterflies.",
+    "A group of children played soccer in the park.",
+    "The teacher read a story to the class.",
+    "Rain fell softly on the green leaves.",
+    "The rabbit hopped across the field."
+  ],
+  hard: [
+    "Despite the looming thunderstorm, the adventurous cat leapt gracefully across the slippery rooftops, seeking shelter.",
+    "The scientist carefully observed the chemical reaction in the laboratory.",
+    "After a long journey, the travelers finally reached the mountain summit.",
+    "The orchestra performed a beautiful symphony in the grand hall.",
+    "The artist painted a stunning landscape with vibrant colors."
+  ]
 };
 
 // Fix: Export correct component name
@@ -30,6 +49,9 @@ export default function StorySpeakingPractice() {
   const [difficulty, setDifficulty] = useState("easy");
   const [level, setLevel] = useState<string>("");
   const [story, setStory] = useState<string>("");
+  const [storyIndex, setStoryIndex] = useState(0);
+  const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+  const email = userSession.email
   // Fetch random topic from Gemini API
   const handleGenerateTopic = async () => {
     setTopicLoading(true);
@@ -190,31 +212,19 @@ Difficulty: ${difficulty}
       const prompt = [
         {
           parts: [{
-            text: `
-You are an expert English language coach with years of experience in teaching and providing detailed feedback. I am building a website to help users improve their English speaking skills using AI.
+            text: `You are an expert English language coach. Compare the student's transcript to the story shown below. Give a detailed analysis report on the comparison, including:
+- The story shown to the student (display it in your report)
+- The student's transcript (display it in your report)
+- A strict word-by-word comparison, highlighting all differences
+- For each mistake, explain why it is incorrect and what the correct version should be
+- Give grammar, vocabulary, pronunciation, and fluency scores out of 100, with explanations
+- Give positive, constructive feedback and clear next steps
 
-I will provide you with a transcript of what the user has spoken, and the story they were asked to read. Your analysis MUST be strict: compare the transcript to the story word-by-word, ignoring only case and punctuation. If any word is substituted, missing, or added, mark it as a vocabulary error and lower the theme relevance and content accuracy scores accordingly.
+Story shown to student:
+"${story}"
 
-Story Theme (ignore case and punctuation):
-"${normalizedStory}"
-
-Transcript (ignore case and punctuation):
-"${speechText}"
-
-When comparing, do NOT assume meaning—require exact word matches. Penalize any mismatches, substitutions, or omissions. Highlight all differences in the feedback and do not give a perfect score unless the transcript matches the story exactly.
-
-1. **Corrected Version**: Rewrite the user's speech with proper grammar, vocabulary, and sentence structure. Be meticulous about accuracy.
-2. **Highlight Mistakes**: List each mistake, the correction, and explain the grammar/vocabulary rule behind it in simple but precise terms. Each mistake must include a 'type' field: grammar, vocabulary, pronunciation, or fluency.
-3. **Grammar, Vocabulary, Pronunciation, and Fluency Scores**: Provide scores out of 100 for each category. Categorize the score: 0-60 = Needs Improvement, 61-80 = Average, 81-100 = Good. Explain why the score was given and what to improve with specific examples.
-4. **Pronunciation Analysis**: If you do not have audio, clarify that feedback is text-based only. Identify any difficult or mispronounced words (if possible), give phonetic tips, and provide 2-3 similar words to practice.
-5. **Fluency Feedback**: Count exact number of filler words used ("um", "like", "uh"). Identify specific unnatural pauses or abrupt stops. Suggest concrete techniques for smoother speech flow.
-6. **Vocabulary Enhancement**: Identify basic or overused words in the transcript. Suggest 2-3 better alternatives with sample sentences showing proper usage. Display basic words as a comma-separated list.
-7. **Theme Relevance**: Score out of 100 for how well the user's speech matches the story, based on strict word-by-word accuracy. Explanation of the score. List of key points covered (array). List of missing key points (array).
-8. **Content Accuracy & Depth**: Score out of 100 for accuracy and depth of content. Strengths (string). Improvements (string). Model Example (string): a model answer for the story. Practice Advice (string): advice for improving content depth and accuracy.
-9. **Communication Tips**: Give 3 personalized tips to help the user improve based on their specific speech pattern. Make these tips actionable and specific to their current level.
-10. **Final Summary**: Provide an overall score and label (Beginner, Intermediate, Advanced). Give clear next steps and suggest if the user should retry or move to the next level.
-
-Please make the feedback positive, constructive, educational, and HIGHLY ACCURATE. Format everything clearly so it can be easily displayed in a dashboard.
+Student's transcript:
+"${text}"
 
 Respond as clean JSON ONLY, using keys:
 {
@@ -243,7 +253,9 @@ Respond as clean JSON ONLY, using keys:
     "practice_advice": "string"
   },
   "communication_tips": ["string"],
-  "overall_summary": { "score": number, "level": "string", "recommendation": "string" }
+  "overall_summary": { "score": number, "level": "string", "recommendation": "string" },
+  "story_shown": "string",
+  "student_transcript": "string"
 }
 `
           }]
@@ -438,14 +450,105 @@ Respond as clean JSON ONLY, using keys:
     return arr.map(f);
   }
 
+
   // Level selection handler
-  const handleLevelSelect = (lvl: string) => {
+  const handleLevelSelect = async (lvl: string) => {
     setLevel(lvl);
-    setStory(stories[lvl]);
+    let storyLevel = lvl;
+    if (lvl === 'basic') storyLevel = 'easy'; 
+    try {
+      const res = await fetch(`${backend_url}/story-progress/${email}/${lvl}`);
+      if (!res.ok) throw new Error("Failed to fetch progress");
+      const data = await res.json();
+      const index = data.index || 0;
+      const story = await fetch(`${api_url}story?level=${storyLevel}&uid=${index}`);
+      const storyData = await story.json();
+      console.log(storyData.story);
+      if(storyData.story) {
+        setStory(storyData.story);
+        setStoryIndex(index);
+      }
+      else{
+        
+        const story = await fetch(`${api_url}story?level=${storyLevel}&uid=0`);
+        const storyData = await story.json();
+        console.log(email, level )
+        setStory(storyData.story);
+        setStoryIndex(0);
+        // if (!level) return;
+        const res1 = await fetch(`${backend_url}story-progress/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email, // replace with real user email
+            level:lvl,
+            storyIndex: 0,
+          }),
+        });
+        console.log(await res1.json())
+
+        
+      }
+    } catch (e) {
+      console.error(e);
+      setStory(stories[lvl][0]);
+      setStoryIndex(0);
+    }
     setText("");
     setFeedback(null);
     resetTranscript();
   };
+
+  const handleNextStory = async () => {
+    if (!level) return;
+    let storyLevel = level;
+    if (level === 'basic') storyLevel = 'easy'; 
+    
+      const res = await fetch(`${backend_url}/story-progress/${email}/${level}`);
+      if (!res.ok) throw new Error("Failed to fetch progress");
+      const data = await res.json();
+      const index = data.index || 0;
+      const story = await fetch(`${api_url}story?level=${storyLevel}&uid=${index+1}`);
+      const storyData = await story.json();
+      console.log(storyData.story);
+      if(storyData.story) {
+        setStory(storyData.story);
+        setStoryIndex(index+1);
+        const res1 = await fetch(`${backend_url}story-progress/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email, // replace with real user email
+            level:level,
+            storyIndex: index+1,
+          }),
+        });
+        console.log(await res1.json())
+      }
+      else{
+        
+        const story = await fetch(`${api_url}story?level=${storyLevel}&uid=0`);
+        const storyData = await story.json();
+        console.log(email, level )
+        setStory(storyData.story);
+        setStoryIndex(0);
+        // if (!level) return;
+        const res1 = await fetch(`${backend_url}story-progress/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email, // replace with real user email
+            level:level,
+            storyIndex: 0,
+          }),
+        });
+        console.log(await res1.json())
+
+        
+      }
+  };
+  
+
 
   // Hear story button
   const handleHearStory = () => {
@@ -463,136 +566,109 @@ Respond as clean JSON ONLY, using keys:
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-white dark:bg-gray-900 p-8 flex flex-col items-center">
-        <h1 className="text-4xl font-extrabold mb-8 text-blue-700 dark:text-blue-300 drop-shadow">Story Speaking Practice</h1>
-        {/* Story Card */}
-        <div className="relative mb-8">
-          <div className="rounded-3xl shadow-xl bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 p-8 border-2 border-blue-200 flex flex-col items-center">
-            <div className="absolute top-4 right-4">
-              <img src="/public/placeholder.svg" alt="Mascot" className="w-12 h-12" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-pink-100 to-yellow-100 p-4 flex flex-col items-center justify-center">
+        <h1 className="text-4xl font-extrabold mb-8 text-blue-700 drop-shadow text-center w-full">Story Speaking Practice</h1>
+        <div className="w-full max-w-3xl flex flex-col gap-8 items-center justify-center">
+          <div className="w-full flex flex-col gap-6 items-center justify-center">
+            <div className="rounded-3xl shadow-xl bg-white/80 dark:bg-gray-900/80 p-8 border-2 border-blue-200 flex flex-col items-center w-full">
+              <h2 className="text-2xl font-bold font-playfair text-primary mb-2 tracking-wide text-center">Story Time</h2>
+              <div className="text-lg font-semibold text-blue-700 mb-4 text-center">{level ? `Level: ${level.charAt(0).toUpperCase() + level.slice(1)}` : 'Choose Your Level'}</div>
+              {!level ? (
+                <div className="flex gap-4 mt-2 justify-center w-full">
+                  <Button onClick={() => handleLevelSelect('basic')} className="rounded-full px-6 py-2 text-lg font-bold bg-blue-200 hover:bg-blue-300">Basic</Button>
+                  <Button onClick={() => handleLevelSelect('medium')} className="rounded-full px-6 py-2 text-lg font-bold bg-pink-200 hover:bg-pink-300">Medium</Button>
+                  <Button onClick={() => handleLevelSelect('hard')} className="rounded-full px-6 py-2 text-lg font-bold bg-yellow-200 hover:bg-yellow-300">Hard</Button>
+                </div>
+              ) : (
+                <>
+                  <div className="w-full mb-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between mb-2 gap-2">
+                      <span className="font-semibold text-blue-800">Read the story below:</span>
+                      <Button onClick={handleHearStory} className="rounded-full bg-gradient-to-r from-blue-400 to-pink-400 text-white px-4 py-1 shadow hover:scale-105 transition-transform">Hear Story</Button>
+                    </div>
+                    <div className="bg-white rounded-xl p-6 shadow-inner text-xl font-serif leading-relaxed tracking-wide story-text w-full">
+                      {story.split(' ').map((word, idx) => (
+                        <span key={idx} className="inline-block transition-all duration-200 hover:bg-yellow-100 px-1 py-0.5 rounded cursor-pointer" style={{ marginRight: 6 }} onClick={() => handleHearWord(word)}>{word} </span>
+                      ))}
+                    </div>
+                    <div className="mt-4 w-full h-2 bg-blue-100 rounded-full">
+                      <div className="h-2 rounded-full bg-blue-400 transition-all" style={{ width: `${Math.min(100, Math.round(text.trim().split(/\s+/).length / story.trim().split(/\s+/).length * 100))}%` }}></div>
+                    </div>
+                    <div className="text-xs text-blue-700 mt-2">Progress: {Math.min(100, Math.round(text.trim().split(/\s+/).length / story.trim().split(/\s+/).length * 100))}%</div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center mt-4">
+                    <Button onClick={handleNextStory} className="rounded-full bg-green-400 hover:bg-green-500 text-white px-6 py-2 font-bold shadow transition-all">Next Story</Button>
+                  </div>
+                </>
+              )}
             </div>
-            <h2 className="text-2xl font-bold font-playfair text-primary mb-2 tracking-wide">Story Time</h2>
-            <div className="text-lg font-semibold text-blue-700 mb-4">{level ? `Level: ${level.charAt(0).toUpperCase() + level.slice(1)}` : 'Choose Your Level'}</div>
-            {!level ? (
-              <div className="flex gap-4 mt-2">
-                <Button onClick={() => handleLevelSelect('basic')} className="rounded-full px-6 py-2 text-lg font-bold bg-blue-200 hover:bg-blue-300">Basic</Button>
-                <Button onClick={() => handleLevelSelect('medium')} className="rounded-full px-6 py-2 text-lg font-bold bg-pink-200 hover:bg-pink-300">Medium</Button>
-                <Button onClick={() => handleLevelSelect('hard')} className="rounded-full px-6 py-2 text-lg font-bold bg-yellow-200 hover:bg-yellow-300">Hard</Button>
+            {/* Voice and analysis buttons remain unchanged below */}
+            {/* Transcript Card */}
+            <Card className="mt-8 rounded-2xl shadow-lg border-2 border-blue-100">
+              <CardHeader>
+                <span className="text-lg font-bold text-blue-700">Your Speech</span>
+              </CardHeader>
+              <CardContent>
+                <div className="font-mono text-base text-gray-800 whitespace-pre-line">{normalizeText(text)}</div>
+                <div className="text-xs text-gray-500 mt-2">Word count: {text.trim().split(/\s+/).length} / {story.trim().split(/\s+/).length}</div>
+              </CardContent>
+            </Card>
+            {/* Analyze & Speaking Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 w-full">
+              <Button
+                onClick={handleAnalyze}
+                disabled={!text || loading}
+                className={`rounded-full px-8 py-3 text-lg font-bold bg-gradient-to-r from-blue-400 to-pink-400 text-white shadow-lg w-full sm:w-auto ${loading ? 'animate-pulse' : ''}`}
+                aria-label="Analyze"
+              >
+                {loading ? 'Analyzing...' : 'Analyze'}
+              </Button>
+              <Button
+                onClick={recording ? handleStop : handleStart}
+                className={`rounded-full px-8 py-3 text-lg font-bold bg-gradient-to-r from-pink-400 to-blue-400 text-white shadow-lg flex items-center gap-2 w-full sm:w-auto ${recording ? 'animate-pulse ring-4 ring-pink-300' : ''}`}
+                aria-label={recording ? 'Stop Recording' : 'Start Speaking'}
+              >
+                {recording ? <CircleStop className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                {recording ? 'Stop' : 'Speak'}
+              </Button>
+            </div>
+            {/* Motivational Tips */}
+            <div className="mt-8 p-4 rounded-xl bg-yellow-50 border border-yellow-200 shadow flex items-center gap-3">
+              <img src="/public/placeholder.svg" alt="Tip" className="w-8 h-8" />
+              <div>
+                <div className="font-bold text-yellow-700">Motivational Tip</div>
+                <div className="text-sm text-yellow-800">Speak with confidence! Every story you read makes you a better communicator.</div>
               </div>
-            ) : (
-              <>
-                <div className="w-full mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-blue-800">Read the story below:</span>
-                    <Button onClick={handleHearStory} className="rounded-full bg-gradient-to-r from-blue-400 to-pink-400 text-white px-4 py-1 shadow hover:scale-105 transition-transform">Hear Story</Button>
-                  </div>
-                  <div className="bg-white rounded-xl p-6 shadow-inner text-xl font-serif leading-relaxed tracking-wide story-text">
-                    {story.split(' ').map((word, idx) => (
-                      <span key={idx} className="inline-block transition-all duration-200 hover:bg-yellow-100 px-1 py-0.5 rounded cursor-pointer" style={{ marginRight: 6 }} onClick={() => handleHearWord(word)}>{word} </span>
-                    ))}
-                  </div>
-                  <div className="mt-4 w-full h-2 bg-blue-100 rounded-full">
-                    <div className="h-2 rounded-full bg-blue-400 transition-all" style={{ width: `${Math.min(100, Math.round(text.trim().split(/\s+/).length / story.trim().split(/\s+/).length * 100))}%` }}></div>
-                  </div>
-                  <div className="text-xs text-blue-700 mt-2">Progress: {Math.min(100, Math.round(text.trim().split(/\s+/).length / story.trim().split(/\s+/).length * 100))}%</div>
-                </div>
-                {/* Floating Mic Button */}
-                <div className="fixed bottom-12 right-8 z-50">
-                  <Button
-                    onClick={recording ? handleStop : handleStart}
-                    className={`rounded-full shadow-lg px-6 py-4 text-xl font-bold bg-gradient-to-r from-pink-400 to-blue-400 text-white flex items-center gap-2 ${recording ? 'animate-pulse ring-4 ring-pink-300' : ''}`}
-                    style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.12)' }}
-                    aria-label={recording ? 'Stop Recording' : 'Start Speaking'}
-                  >
-                    {recording ? <CircleStop className="w-7 h-7" /> : <Mic className="w-7 h-7" />}
-                    {recording ? 'Stop' : 'Speak'}
-                  </Button>
-                </div>
-                {/* Transcript Card */}
-                <Card className="mt-8 rounded-2xl shadow-lg border-2 border-blue-100">
-                  <CardHeader>
-                    <span className="text-lg font-bold text-blue-700">Your Speech</span>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="font-mono text-base text-gray-800 whitespace-pre-line">{normalizeText(text)}</div>
-                    <div className="text-xs text-gray-500 mt-2">Word count: {text.trim().split(/\s+/).length} / {story.trim().split(/\s+/).length}</div>
-                  </CardContent>
-                </Card>
-                {/* Analyze & Speaking Buttons */}
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 w-full">
-                  <Button
-                    onClick={handleAnalyze}
-                    disabled={!text || loading}
-                    className={`rounded-full px-8 py-3 text-lg font-bold bg-gradient-to-r from-blue-400 to-pink-400 text-white shadow-lg w-full sm:w-auto ${loading ? 'animate-pulse' : ''}`}
-                    aria-label="Analyze"
-                  >
-                    {loading ? 'Analyzing...' : 'Analyze'}
-                  </Button>
-                  <Button
-                    onClick={recording ? handleStop : handleStart}
-                    className={`rounded-full px-8 py-3 text-lg font-bold bg-gradient-to-r from-pink-400 to-blue-400 text-white shadow-lg flex items-center gap-2 w-full sm:w-auto ${recording ? 'animate-pulse ring-4 ring-pink-300' : ''}`}
-                    aria-label={recording ? 'Stop Recording' : 'Start Speaking'}
-                  >
-                    {recording ? <CircleStop className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                    {recording ? 'Stop' : 'Speak'}
-                  </Button>
-                </div>
-                {/* Motivational Tips */}
-                <div className="mt-8 p-4 rounded-xl bg-yellow-50 border border-yellow-200 shadow flex items-center gap-3">
-                  <img src="/public/placeholder.svg" alt="Tip" className="w-8 h-8" />
-                  <div>
-                    <div className="font-bold text-yellow-700">Motivational Tip</div>
-                    <div className="text-sm text-yellow-800">Speak with confidence! Every story you read makes you a better communicator.</div>
-                  </div>
-                </div>
-                {/* Feedback Sections - Structured and Accurate */}
-                {feedback && (
-                  <div className="space-y-6 mt-8">
-                    {/* 1. Corrected Version */}
-                    {feedback.corrected_version && (
-                      <Card className="rounded-2xl border-0 bg-green-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-green-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Corrected Version</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="font-mono text-base text-green-900">{feedback.corrected_version}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 2. Highlight Mistakes */}
-                    {feedback.mistakes && (
-                      <Card className="rounded-2xl border-0 bg-amber-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-amber-700 flex items-center gap-2"><LineChart className="w-5 h-5" /> Highlight Mistakes</span>
-                        </CardHeader>
-                        <CardContent>
-                          {['grammar', 'vocabulary', 'pronunciation', 'fluency'].map((cat) => {
-                            const catMistakes = feedback.mistakes?.filter((m: any) => m.type === cat) || [];
-                            return (
-                              <div key={cat} className="mb-4">
-                                <div className="font-bold text-amber-800 capitalize mb-2">{cat} Mistakes</div>
-                                {catMistakes.length > 0 ? (
-                                  <ul className="list-disc ml-4 space-y-2 text-sm">
-                                    {catMistakes.map((m: any, idx: number) => (
-                                      <li key={idx}>
-                                        <b>Mistake:</b> <span className="text-red-600">{m.mistake}</span><br />
-                                        <b>Correction:</b> <span className="text-green-700">{m.correction}</span><br />
-                                        <b>Explanation:</b> <span>{m.explanation}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <div className="text-sm text-gray-500 ml-4">No {cat} mistakes found.</div>
-                                )}
-                              </div>
-                            );
-                          })}
-                          {/* Fallback for uncategorized mistakes */}
-                          {feedback.mistakes?.filter((m: any) => !m.type).length > 0 ? (
-                            <div className="mb-4">
-                              <div className="font-bold text-amber-800 mb-2">Other Mistakes</div>
+            </div>
+            {/* Feedback Sections - Structured and Accurate */}
+            {feedback && (
+              <div className="space-y-6 mt-8">
+                {/* 1. Corrected Version */}
+                {feedback.corrected_version && (
+                  <Card className="rounded-2xl border-0 bg-green-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-green-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Corrected Version</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="font-mono text-base text-green-900">{feedback.corrected_version}</div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 2. Highlight Mistakes */}
+                {feedback.mistakes && (
+                  <Card className="rounded-2xl border-0 bg-amber-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-amber-700 flex items-center gap-2"><LineChart className="w-5 h-5" /> Highlight Mistakes</span>
+                    </CardHeader>
+                    <CardContent>
+                      {['grammar', 'vocabulary', 'pronunciation', 'fluency'].map((cat) => {
+                        const catMistakes = feedback.mistakes?.filter((m: any) => m.type === cat) || [];
+                        return (
+                          <div key={cat} className="mb-4">
+                            <div className="font-bold text-amber-800 capitalize mb-2">{cat} Mistakes</div>
+                            {catMistakes.length > 0 ? (
                               <ul className="list-disc ml-4 space-y-2 text-sm">
-                                {feedback.mistakes.filter((m: any) => !m.type).map((m: any, idx: number) => (
+                                {catMistakes.map((m: any, idx: number) => (
                                   <li key={idx}>
                                     <b>Mistake:</b> <span className="text-red-600">{m.mistake}</span><br />
                                     <b>Correction:</b> <span className="text-green-700">{m.correction}</span><br />
@@ -600,146 +676,163 @@ Respond as clean JSON ONLY, using keys:
                                   </li>
                                 ))}
                               </ul>
-                            </div>
-                          ) : (
-                            <div className="text-sm text-gray-500 ml-4">No uncategorized mistakes found.</div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 3. Scores */}
-                    {feedback.scores && (
-                      <Card className="rounded-2xl border-0 bg-blue-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-blue-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Scores</span>
-                        </CardHeader>
-                        <CardContent>
-                          {['grammar', 'vocabulary', 'pronunciation', 'fluency'].map((cat) => (
-                            feedback.scores[cat] && (
-                              <div key={cat} className="mb-2">
-                                <div className="font-semibold capitalize">{cat}:</div>
-                                <span className={
-                                  feedback.scores[cat].score >= 81
-                                    ? "text-green-600 font-bold"
-                                    : feedback.scores[cat].score >= 61
-                                    ? "text-yellow-700 font-bold"
-                                    : "text-red-600 font-bold"
-                                }>
-                                  {feedback.scores[cat].score} / 100 ("{feedback.scores[cat].label}")
-                                </span>
-                                <div className="text-sm text-muted-foreground mt-1">{feedback.scores[cat].explanation}</div>
-                              </div>
-                            )
-                          ))}
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 4. Pronunciation Analysis */}
-                    {feedback.pronunciation_feedback && (
-                      <Card className="rounded-2xl border-0 bg-purple-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-purple-700 flex items-center gap-2"><VolumeX className="w-5 h-5" /> Pronunciation Analysis</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Difficult Words:</b> {feedback.pronunciation_feedback.difficult_words?.join(", ")}</div>
-                          <div className="mb-2"><b>Tips:</b> {feedback.pronunciation_feedback.tips}</div>
-                          <div className="mb-2"><b>Example Words:</b> {feedback.pronunciation_feedback.example_words?.join(", ")}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 5. Fluency Feedback */}
-                    {feedback.fluency_feedback && (
-                      <Card className="rounded-2xl border-0 bg-pink-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-pink-700 flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Fluency Feedback</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Filler Words Count:</b> {feedback.fluency_feedback.filler_words_count}</div>
-                          <div className="mb-2"><b>Unnatural Pauses:</b> {feedback.fluency_feedback.unnatural_pauses}</div>
-                          <div className="mb-2"><b>Suggestions:</b> {feedback.fluency_feedback.suggestions}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 6. Vocabulary Enhancement */}
-                    {feedback.vocabulary_enhancement && (
-                      <Card className="rounded-2xl border-0 bg-yellow-50 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-yellow-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Vocabulary Enhancement</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Basic Words:</b> {feedback.vocabulary_enhancement.basic_words?.join(", ")}</div>
-                          <div className="mb-2"><b>Alternatives:</b></div>
-                          <ul className="list-disc ml-4">
-                            {feedback.vocabulary_enhancement.alternatives?.map((alt: any, idx: number) => (
+                            ) : (
+                              <div className="text-sm text-gray-500 ml-4">No {cat} mistakes found.</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      {/* Fallback for uncategorized mistakes */}
+                      {feedback.mistakes?.filter((m: any) => !m.type).length > 0 ? (
+                        <div className="mb-4">
+                          <div className="font-bold text-amber-800 mb-2">Other Mistakes</div>
+                          <ul className="list-disc ml-4 space-y-2 text-sm">
+                            {feedback.mistakes.filter((m: any) => !m.type).map((m: any, idx: number) => (
                               <li key={idx}>
-                                <b>{alt.word}:</b> {alt.alternatives?.join(", ")}<br />
-                                <span className="text-sm">Samples: {alt.samples?.join(" | ")}</span>
+                                <b>Mistake:</b> <span className="text-red-600">{m.mistake}</span><br />
+                                <b>Correction:</b> <span className="text-green-700">{m.correction}</span><br />
+                                <b>Explanation:</b> <span>{m.explanation}</span>
                               </li>
                             ))}
                           </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 7. Theme Relevance */}
-                    {feedback.theme_relevance && (
-                      <Card className="rounded-2xl border-0 bg-blue-100 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-blue-800 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Theme Relevance</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Score:</b> {feedback.theme_relevance.score} / 100</div>
-                          <div className="mb-2"><b>Explanation:</b> {feedback.theme_relevance.explanation}</div>
-                          <div className="mb-2"><b>Covered Points:</b> {feedback.theme_relevance.covered_points?.join(", ")}</div>
-                          <div className="mb-2"><b>Missing Points:</b> {feedback.theme_relevance.missing_points?.join(", ")}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 8. Content Accuracy & Depth */}
-                    {feedback.content_accuracy && (
-                      <Card className="rounded-2xl border-0 bg-green-100 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-green-800 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Content Accuracy & Depth</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Score:</b> {feedback.content_accuracy.score} / 100</div>
-                          <div className="mb-2"><b>Strengths:</b> {feedback.content_accuracy.strengths}</div>
-                          <div className="mb-2"><b>Improvements:</b> {feedback.content_accuracy.improvements}</div>
-                          <div className="mb-2"><b>Model Example:</b> {feedback.content_accuracy.model_example}</div>
-                          <div className="mb-2"><b>Practice Advice:</b> {feedback.content_accuracy.practice_advice}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 9. Communication Tips */}
-                    {feedback.communication_tips && (
-                      <Card className="rounded-2xl border-0 bg-pink-100 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-pink-800 flex items-center gap-2"><Settings className="w-5 h-5" /> Communication Tips</span>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="list-disc ml-4">
-                            {feedback.communication_tips.map((tip: string, idx: number) => (
-                              <li key={idx}>{tip}</li>
-                            ))}
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    )}
-                    {/* 10. Final Summary */}
-                    {feedback.overall_summary && (
-                      <Card className="rounded-2xl border-0 bg-blue-200 shadow w-full">
-                        <CardHeader>
-                          <span className="font-bold text-blue-900 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Final Summary</span>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-2"><b>Score:</b> {feedback.overall_summary.score} / 100</div>
-                          <div className="mb-2"><b>Level:</b> {feedback.overall_summary.level}</div>
-                          <div className="mb-2"><b>Recommendation:</b> {feedback.overall_summary.recommendation}</div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-500 ml-4">No uncategorized mistakes found.</div>
+                      )}
+                    </CardContent>
+                  </Card>
                 )}
-              </>
+                {/* 3. Scores */}
+                {feedback.scores && (
+                  <Card className="rounded-2xl border-0 bg-blue-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-blue-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Scores</span>
+                    </CardHeader>
+                    <CardContent>
+                      {['grammar', 'vocabulary', 'pronunciation', 'fluency'].map((cat) => (
+                        feedback.scores[cat] && (
+                          <div key={cat} className="mb-2">
+                            <div className="font-semibold capitalize">{cat}:</div>
+                            <span className={
+                              feedback.scores[cat].score >= 81
+                                ? "text-green-600 font-bold"
+                                : feedback.scores[cat].score >= 61
+                                ? "text-yellow-700 font-bold"
+                                : "text-red-600 font-bold"
+                            }>
+                              {feedback.scores[cat].score} / 100 ("{feedback.scores[cat].label}")
+                            </span>
+                            <div className="text-sm text-muted-foreground mt-1">{feedback.scores[cat].explanation}</div>
+                          </div>
+                        )
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 4. Pronunciation Analysis */}
+                {feedback.pronunciation_feedback && (
+                  <Card className="rounded-2xl border-0 bg-purple-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-purple-700 flex items-center gap-2"><VolumeX className="w-5 h-5" /> Pronunciation Analysis</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Difficult Words:</b> {feedback.pronunciation_feedback.difficult_words?.join(", ")}</div>
+                      <div className="mb-2"><b>Tips:</b> {feedback.pronunciation_feedback.tips}</div>
+                      <div className="mb-2"><b>Example Words:</b> {feedback.pronunciation_feedback.example_words?.join(", ")}</div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 5. Fluency Feedback */}
+                {feedback.fluency_feedback && (
+                  <Card className="rounded-2xl border-0 bg-pink-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-pink-700 flex items-center gap-2"><AlertTriangle className="w-5 h-5" /> Fluency Feedback</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Filler Words Count:</b> {feedback.fluency_feedback.filler_words_count}</div>
+                      <div className="mb-2"><b>Unnatural Pauses:</b> {feedback.fluency_feedback.unnatural_pauses}</div>
+                      <div className="mb-2"><b>Suggestions:</b> {feedback.fluency_feedback.suggestions}</div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 6. Vocabulary Enhancement */}
+                {feedback.vocabulary_enhancement && (
+                  <Card className="rounded-2xl border-0 bg-yellow-50 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-yellow-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Vocabulary Enhancement</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Basic Words:</b> {feedback.vocabulary_enhancement.basic_words?.join(", ")}</div>
+                      <div className="mb-2"><b>Alternatives:</b></div>
+                      <ul className="list-disc ml-4">
+                        {feedback.vocabulary_enhancement.alternatives?.map((alt: any, idx: number) => (
+                          <li key={idx}>
+                            <b>{alt.word}:</b> {alt.alternatives?.join(", ")}<br />
+                            <span className="text-sm">Samples: {alt.samples?.join(" | ")}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 7. Theme Relevance */}
+                {feedback.theme_relevance && (
+                  <Card className="rounded-2xl border-0 bg-blue-100 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-blue-800 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Theme Relevance</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Score:</b> {feedback.theme_relevance.score} / 100</div>
+                      <div className="mb-2"><b>Explanation:</b> {feedback.theme_relevance.explanation}</div>
+                      <div className="mb-2"><b>Covered Points:</b> {feedback.theme_relevance.covered_points?.join(", ")}</div>
+                      <div className="mb-2"><b>Missing Points:</b> {feedback.theme_relevance.missing_points?.join(", ")}</div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 8. Content Accuracy & Depth */}
+                {feedback.content_accuracy && (
+                  <Card className="rounded-2xl border-0 bg-green-100 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-green-800 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Content Accuracy & Depth</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Score:</b> {feedback.content_accuracy.score} / 100</div>
+                      <div className="mb-2"><b>Strengths:</b> {feedback.content_accuracy.strengths}</div>
+                      <div className="mb-2"><b>Improvements:</b> {feedback.content_accuracy.improvements}</div>
+                      <div className="mb-2"><b>Model Example:</b> {feedback.content_accuracy.model_example}</div>
+                      <div className="mb-2"><b>Practice Advice:</b> {feedback.content_accuracy.practice_advice}</div>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 9. Communication Tips */}
+                {feedback.communication_tips && (
+                  <Card className="rounded-2xl border-0 bg-pink-100 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-pink-800 flex items-center gap-2"><Settings className="w-5 h-5" /> Communication Tips</span>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="list-disc ml-4">
+                        {feedback.communication_tips.map((tip: string, idx: number) => (
+                          <li key={idx}>{tip}</li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+                {/* 10. Final Summary */}
+                {feedback.overall_summary && (
+                  <Card className="rounded-2xl border-0 bg-blue-200 shadow w-full">
+                    <CardHeader>
+                      <span className="font-bold text-blue-900 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Final Summary</span>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-2"><b>Score:</b> {feedback.overall_summary.score} / 100</div>
+                      <div className="mb-2"><b>Level:</b> {feedback.overall_summary.level}</div>
+                      <div className="mb-2"><b>Recommendation:</b> {feedback.overall_summary.recommendation}</div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             )}
           </div>
         </div>

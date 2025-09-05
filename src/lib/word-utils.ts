@@ -92,9 +92,9 @@ export const updateScore=async(wordscramble, difficulty, word)=>{
 
   if (isSolved) {
     console.log(`Word "${word}" is already solved.`);
-    return;
+    return false;
   }
-
+  // setPuzzlesSolved(prev => prev + 1);
   // Send request to Flask to increment score
   try {
     const response = await fetch(backend_url + "increment-score", {
@@ -114,6 +114,7 @@ export const updateScore=async(wordscramble, difficulty, word)=>{
   } catch (error) {
     console.error("Failed to update score:", error);
   }
+  return true;
 }
 
 export const getRandomWord = (): string => {

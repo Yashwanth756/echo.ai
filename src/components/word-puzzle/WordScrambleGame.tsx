@@ -152,6 +152,7 @@ const WordScrambleGame = () => {
     // Get a random word based on difficulty
     // console.log(wordscramble, easyWords, mediumWords, difficulty);
     const newWord = getRandomWordByDifficulty(wordscramble, easyWords, mediumWords, difficulty);
+    console.log(newWord)
     setOriginalWord(newWord);
     
     // Scramble it and ensure it's different from the original
@@ -164,7 +165,8 @@ const WordScrambleGame = () => {
     setCurrentArrangement(scrambled.split(''));
     setPotArrangement(Array(newWord.length).fill(null));
     setHintsUsed(getHintsForWord(wordscramble, difficulty, newWord));
-    setPuzzlesSolved(countCompletedWords(wordscramble, difficulty))
+    // console.log(wordscramble[difficulty+'score'].score, difficulty)
+    setPuzzlesSolved(wordscramble[difficulty+'score'].score)
     setHintedIndexes([]);
     setIsCorrect(null);
     setShowInvalidAnimation(false);
@@ -240,7 +242,16 @@ const WordScrambleGame = () => {
     const offsetResponse = await fetch(backend_url + `get-wordScrambleId?level=${difficulty}&email=${userSession.email}`);
     const offsetLocal = await offsetResponse.json();
 
-    const wordScrambleResponse = await fetch(api_url + `wordScramble?offset=${offsetLocal.id+10}&level=${difficulty}`);
+    let wordScrambleResponse;
+    try{
+     wordScrambleResponse = await fetch(api_url + `wordScramble?offset=${offsetLocal.id+10}&level=${difficulty}`);
+     const offsetUpdateResponse = await fetch(backend_url + `increment-wordScrambleId?email=${userSession.email}&level=${difficulty}&index=${offsetLocal.id+10}`);
+    console.log('offset update response', await offsetUpdateResponse.json())
+    }catch(e){
+     wordScrambleResponse = await fetch(api_url + `wordScramble?offset=${0}&level=${difficulty}`);
+    const offsetUpdateResponse = await fetch(backend_url + `increment-wordScrambleId?email=${userSession.email}&level=${difficulty}&index=${0}`);
+    console.log('offset update response', await offsetUpdateResponse.json())
+    }
     const wordScrambleDifficultyData = await wordScrambleResponse.json();
     //updation in local
     const formattedWords = wordScrambleDifficultyData.map((word) => [word.word, 0, false]); // Assuming 0 hints used and not solved
@@ -263,8 +274,7 @@ const WordScrambleGame = () => {
     console.log("Updated new words:", await wordScrambleUpdateResponse.json());
 
     // update offset in database
-    const offsetUpdateResponse = await fetch(backend_url + `increment-wordScrambleId?email=${userSession.email}&level=${difficulty}`)
-    console.log('offset update response', await offsetUpdateResponse.json())
+    
   };
 
   const checkAnswer = () => {
@@ -283,9 +293,9 @@ const WordScrambleGame = () => {
     
     if (currentGuess === originalWord) {
       setIsCorrect(true);
-      setPuzzlesSolved(prev => prev + 1);
+      
       // markWordAsSolved(difficulty, originalWord)
-      updateScore(wordscramble, difficulty, originalWord)
+      if(updateScore(wordscramble, difficulty, originalWord)) setPuzzlesSolved(prev => prev + 1);
   
       toast({
         title: "Correct!",
@@ -329,6 +339,7 @@ const WordScrambleGame = () => {
 
   // If game is completed, show game over screen
   if (isCorrect) {
+    console.log(puzzlesSolved)
     return (
       <GameOverScreen 
         hasWon={true}

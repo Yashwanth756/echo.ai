@@ -19,7 +19,7 @@ async function updateScoreAndSolve(vocabularyArchade, difficulty, word) {
 
   if (!wordObj) {
     console.warn(`Word "${word}" not found in ${difficulty} level.`);
-    return vocabularyArchade;
+    return false;
   }
 
   if (!wordObj.isSolved) {
@@ -36,7 +36,9 @@ async function updateScoreAndSolve(vocabularyArchade, difficulty, word) {
     } catch (error) {
       console.error("Failed to update score on server:", error);
     }
+    return true
   }
+  return false
 }
 
 async function updateBadge(vocabularyArchade, badge, level) {
@@ -135,9 +137,18 @@ const vocabularyData = {
     const offsetResponse =await fetch(backend_url+`get-vocabularyArchadeId?level=${level}&email=${userSession.email}`)
     const offset = await offsetResponse.json()
     console.log(offset.id)
-
+    let vocabularyArchadeResponse;
     //get data from api
-    const vocabularyArchadeResponse = await fetch(api_url + `vocabularyArchade?offset=${offset.id+10}&level=${map[level]}`)
+    try{
+     vocabularyArchadeResponse = await fetch(api_url + `vocabularyArchade?offset=${offset.id+10}&level=${map[level]}`)
+    // update offset in database
+      const offsetUpdateResponse = await fetch(backend_url + `increment-vocabularyArchadeId?email=${userSession.email}&level=${level}&index=${offset.id+10}`)
+      console.log(await offsetUpdateResponse.json())
+    }catch(e){
+     vocabularyArchadeResponse = await fetch(api_url + `vocabularyArchade?offset=${0}&level=${map[level]}`)
+     const offsetUpdateResponse = await fetch(backend_url + `increment-vocabularyArchadeId?email=${userSession.email}&level=${level}&index=0`)
+      console.log(await offsetUpdateResponse.json())
+    }
     const vocabularyArchadeData = await vocabularyArchadeResponse.json()
     console.log('data from api',vocabularyArchadeData)
 
@@ -147,9 +158,7 @@ const vocabularyData = {
     vocabularyData[level] = formattedData
     startGame(level)
 
-    // update offset in database
-    const offsetUpdateResponse = await fetch(backend_url + `increment-vocabularyArchadeId?email=${userSession.email}&level=${level}`)
-    console.log(await offsetUpdateResponse.json())
+
 
     //clear data in database
     const clearDataResponse = await fetch(backend_url + `clear-vocabularyArchadeData?email=${userSession.email}&level=${level}`)
@@ -217,8 +226,10 @@ const vocabularyData = {
     if (options[selectedOption].isCorrect) {
       // Correct answer
       // setScore(prev => prev + 1);
-      updateScoreAndSolve(vocabularyArchade, level, currentWord.word)
+      if (updateScoreAndSolve(vocabularyArchade, level, currentWord.word)){
       setScore(vocabularyArchade[level]['score'])
+      console.log('score updated', vocabularyArchade[level]['score'])
+    }
       
       toast({
         title: "Correct! 🎉",

@@ -89,7 +89,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-indigo-900 dark:to-purple-900 p-4 relative overflow-hidden">
       {/* Floating decorative elements */}
-      <img src="https://cdn.pixabay.com/photo/2014/04/03/10/24/alphabet-blocks-310536_1280.png" 
+      {/* <img src="https://cdn.pixabay.com/photo/2014/04/03/10/24/alphabet-blocks-310536_1280.png" 
         alt="Blocks" 
         className="floating-element absolute w-20 h-20 top-20 left-[20%] opacity-60 transition-all duration-1000" />
       
@@ -99,7 +99,7 @@ const Register = () => {
       
       <img src="https://cdn.pixabay.com/photo/2014/04/03/11/08/abc-311294_1280.png" 
         alt="ABC" 
-        className="floating-element absolute w-24 h-24 bottom-20 left-[15%] opacity-60 transition-all duration-1000" />
+        className="floating-element absolute w-24 h-24 bottom-20 left-[15%] opacity-60 transition-all duration-1000" /> */}
 
       {/* Navigation back */}
       <div className="absolute top-4 left-4">
@@ -254,7 +254,7 @@ const Register = () => {
       </Card>
 
       {/* Decorative elements */}
-      <div className="absolute bottom-10 right-10 animate-float">
+      {/* <div className="absolute bottom-10 right-10 animate-float">
         <div className="bg-primary/10 p-4 rounded-full">
           <img 
             src="https://cdn.pixabay.com/photo/2016/04/01/11/12/boy-1300231_1280.png" 
@@ -262,7 +262,7 @@ const Register = () => {
             className="w-24 h-24 object-contain" 
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

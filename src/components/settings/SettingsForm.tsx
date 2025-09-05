@@ -50,25 +50,25 @@ export function SettingsForm() {
   });
 
   // Handle API key change to auto-save after a delay
-  useEffect(() => {
-    const apiKey = form.watch("geminiApiKey");
+  // useEffect(() => {
+  //   const apiKey = form.watch("geminiApiKey");
     
-    // Skip on initial load
-    if (!isSaved && apiKey) {
-      const timer = setTimeout(() => {
-        if (apiKey && apiKey.length > 10) { // Only save if looks like a valid key
-          localStorage.setItem("gemini-api-key", apiKey);
-          setIsSaved(true);
-          toast({
-            title: "API Key Saved",
-            description: "Your API key has been automatically saved.",
-          });
-        }
-      }, 1500);
+  //   // Skip on initial load
+  //   if (!isSaved && apiKey) {
+  //     const timer = setTimeout(() => {
+  //       if (apiKey && apiKey.length > 10) { // Only save if looks like a valid key
+  //         localStorage.setItem("gemini-api-key", apiKey);
+  //         setIsSaved(true);
+  //         toast({
+  //           title: "API Key Saved",
+  //           description: "Your API key has been automatically saved.",
+  //         });
+  //       }
+  //     }, 1500);
       
-      return () => clearTimeout(timer);
-    }
-  }, [form.watch("geminiApiKey"), isSaved]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [form.watch("geminiApiKey"), isSaved]);
 
   // Reset the copy state after 2 seconds
   useEffect(() => {

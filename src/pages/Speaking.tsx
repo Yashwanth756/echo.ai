@@ -520,11 +520,11 @@ Respond as clean JSON ONLY, using keys:
                 <b>Sample Response:</b>
                 <div className="bg-blue-50 rounded p-2 text-xs font-mono">{randomTopic.sample_response}</div>
               </div>
-              <Button
+              {/* <Button
                 variant="default"
                 onClick={() => { setSelectedTopic(randomTopic.title); setCustomTopic(""); }}
                 className="mt-2"
-              >Use This Topic</Button>
+              >Use This Topic</Button> */}
             </div>
           )}
           {randomTopic && randomTopic.parsing_error && (

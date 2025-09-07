@@ -200,10 +200,10 @@ Difficulty: ${difficulty}
       toast.error("No transcript available. Please record some speech first.");
       return;
     }
-    if (transcriptWords < minWords) {
-      toast.error(`Please read the entire story aloud before analyzing. (${transcriptWords}/${minWords} words)`);
-      return;
-    }
+    // if (transcriptWords < minWords) {
+    //   toast.error(`Please read the entire story aloud before analyzing. (${transcriptWords}/${minWords} words)`);
+    //   return;
+    // }
     setLoading(true);
     try {
       const speechText = normalizeText(text);
@@ -213,12 +213,14 @@ Difficulty: ${difficulty}
         {
           parts: [{
             text: `You are an expert English language coach. Compare the student's transcript to the story shown below. Give a detailed analysis report on the comparison, including:
-- The story shown to the student (display it in your report)
+-and donot consider capitalization, punctuation as mistakes.
+            - The story shown to the student (display it in your report)
 - The student's transcript (display it in your report)
 - A strict word-by-word comparison, highlighting all differences
 - For each mistake, explain why it is incorrect and what the correct version should be
 - Give grammar, vocabulary, pronunciation, and fluency scores out of 100, with explanations
 - Give positive, constructive feedback and clear next steps
+
 
 Story shown to student:
 "${story}"
@@ -603,16 +605,7 @@ Respond as clean JSON ONLY, using keys:
               )}
             </div>
             {/* Voice and analysis buttons remain unchanged below */}
-            {/* Transcript Card */}
-            <Card className="mt-8 rounded-2xl shadow-lg border-2 border-blue-100">
-              <CardHeader>
-                <span className="text-lg font-bold text-blue-700">Your Speech</span>
-              </CardHeader>
-              <CardContent>
-                <div className="font-mono text-base text-gray-800 whitespace-pre-line">{normalizeText(text)}</div>
-                <div className="text-xs text-gray-500 mt-2">Word count: {text.trim().split(/\s+/).length} / {story.trim().split(/\s+/).length}</div>
-              </CardContent>
-            </Card>
+           
             {/* Analyze & Speaking Buttons */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6 w-full">
               <Button
@@ -640,11 +633,34 @@ Respond as clean JSON ONLY, using keys:
                 <div className="text-sm text-yellow-800">Speak with confidence! Every story you read makes you a better communicator.</div>
               </div>
             </div>
+             {/* Transcript Card */}
+            <Card className="mt-8 rounded-2xl shadow-lg border-2 border-blue-100">
+              <CardHeader>
+                <span className="text-lg font-bold text-blue-700">Your Speech</span>
+              </CardHeader>
+              <CardContent>
+                <div className="font-mono text-base text-gray-800 whitespace-pre-line">{normalizeText(text)}</div>
+                <div className="text-xs text-gray-500 mt-2">Word count: {text.trim().split(/\s+/).length} / {story.trim().split(/\s+/).length}</div>
+              </CardContent>
+            </Card>
+            {/* Corrected Version with highlights */}
+                    {feedback.corrected_version && (
+                      <Card className="rounded-xl border-0 bg-green-50 shadow">
+                        <CardHeader>
+                          <span className="font-bold text-green-700">Corrected Version</span>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="font-mono" dangerouslySetInnerHTML={{
+                            __html: highlightErrors(feedback.corrected_version, feedback.mistakes)
+                          }} />
+                        </CardContent>
+                      </Card>
+                    )}
             {/* Feedback Sections - Structured and Accurate */}
             {feedback && (
               <div className="space-y-6 mt-8">
                 {/* 1. Corrected Version */}
-                {feedback.corrected_version && (
+                {/* {feedback.corrected_version && (
                   <Card className="rounded-2xl border-0 bg-green-50 shadow w-full">
                     <CardHeader>
                       <span className="font-bold text-green-700 flex items-center gap-2"><ChartBar className="w-5 h-5" /> Corrected Version</span>
@@ -653,7 +669,7 @@ Respond as clean JSON ONLY, using keys:
                       <div className="font-mono text-base text-green-900">{feedback.corrected_version}</div>
                     </CardContent>
                   </Card>
-                )}
+                )} */}
                 {/* 2. Highlight Mistakes */}
                 {feedback.mistakes && (
                   <Card className="rounded-2xl border-0 bg-amber-50 shadow w-full">

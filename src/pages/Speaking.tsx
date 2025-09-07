@@ -189,7 +189,7 @@ Difficulty: ${difficulty}
             text: `
 You are an expert English language coach with years of experience in teaching and providing detailed feedback. I am building a website to help users improve their English speaking skills using AI.
 
-I will provide you with a transcript of what the user has spoken. Based on that transcript, give a detailed, structured, and VERY ACCURATE feedback report with these sections:
+I will provide you with a transcript of what the user has spoken. Based on that transcript, give a detailed, structured, and VERY ACCURATE feedback report with these sections and donot consider capitalization, punctuation as mistakes.:
 
 1. **Corrected Version**: Rewrite the user's speech with proper grammar, vocabulary, and sentence structure. Be meticulous about accuracy.
 
@@ -235,7 +235,7 @@ I will provide you with a transcript of what the user has spoken. Based on that 
   - Provide an overall score and label (Beginner, Intermediate, Advanced).
   - Give clear next steps and suggest if the user should retry or move to the next level.
 
-Please make the feedback positive, constructive, educational, and HIGHLY ACCURATE. Format everything clearly so it can be easily displayed in a dashboard.
+Please make the feedback positive, constructive, educational, and HIGHLY ACCURATE. Format everything clearly so it can be easily displayed in a dashboard and donot consider capitalization, punctuation as mistakes.
 
 Transcript:
 "${speechText}"
